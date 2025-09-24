@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    /* Simple cohesive motion: lifter + bar move as one (no body-part rotations) */
+    @keyframes rise { 0%,100% { transform: translateY(-4px);} 50% { transform: translateY(0px);} }
+    .group-rise { animation: rise 1.4s infinite ease-in-out; transform-origin: 40px 42px; transform-box: fill-box; }
+
+    .ui { fill: #666; stroke: #000; stroke-width: 1.5; shape-rendering: geometricPrecision; }
+    .ink { fill: #111; stroke: #000; stroke-width: 1.6; shape-rendering: geometricPrecision; }
+    .round { stroke-linejoin: round; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) { .ui { fill: #ddd; stroke: #fff; } .ink { fill: #fafafa; stroke: #fff; } }
+    @media (prefers-reduced-motion: reduce) { .group-rise { animation: none; } }
+  </style>
+
+  <!-- floor -->
+  <rect x="10" y="60" width="60" height="6" rx="2" class="ui round"/>
+
+  <!-- lifter + bar: rise together (no internal rotations) -->
+  <g class="group-rise">
+    <!-- bar on shoulders -->
+    <rect x="15" y="36" width="50" height="4" rx="2" class="ink round"/>
+    <circle cx="18" cy="38" r="4" class="ink"/>
+    <circle cx="62" cy="38" r="4" class="ink"/>
+
+    <!-- simplified silhouette: head, torso, legs, foot (static relative to each other) -->
+    <circle cx="36" cy="36" r="3" class="ink round"/>
+    <rect x="33" y="39" width="12" height="4" rx="2" class="ink round"/>
+    <rect x="34" y="48" width="12" height="3.5" rx="2" class="ink round"/>
+    <rect x="44" y="44" width="3.5" height="14" rx="2" class="ink round"/>
+    <rect x="43" y="58" width="7" height="2" rx="1" class="ink round"/>
+  </g>
+</svg>

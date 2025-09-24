@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    @keyframes lift { 0%,100% { transform: translateY(10px);} 50% { transform: translateY(-8px);} }
+    .bar { animation: lift 1.2s infinite ease-in-out; transform-origin: 40px 60px; }
+    @media (prefers-reduced-motion: reduce) { .bar { animation: none; } }
+
+    .ui { fill: #666; stroke: #000; stroke-width: 1.5; shape-rendering: geometricPrecision; }
+    .ink { fill: #111; stroke: #000; stroke-width: 1.6; shape-rendering: geometricPrecision; }
+    .round { stroke-linejoin: round; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) { .ui { fill: #ddd; stroke: #fff; } .ink { fill: #fafafa; stroke: #fff; } }
+  </style>
+  <rect x="8" y="64" width="64" height="6" rx="2" class="ui round"/>
+  <g class="bar">
+    <rect x="15" y="56" width="50" height="4" rx="2" class="ink round"/>
+    <circle cx="18" cy="58" r="4" class="ink"/>
+    <circle cx="62" cy="58" r="4" class="ink"/>
+  </g>
+  <!-- person at the bar (stationary) -->
+  <circle cx="40" cy="48" r="3" class="ink round"/>
+  <rect x="36" y="51" width="8" height="8" rx="2" class="ink round"/>
+</svg>

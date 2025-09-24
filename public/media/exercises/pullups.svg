@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    @keyframes pull { 0%,100% { transform: translateY(8px);} 50% { transform: translateY(-8px);} }
+    .body { animation: pull 1.3s infinite ease-in-out; transform-origin: 40px 20px; }
+    @media (prefers-reduced-motion: reduce) { .body { animation: none; } }
+
+    .ui { fill: #666; stroke: #000; stroke-width: 1.5; shape-rendering: geometricPrecision; }
+    .ink { fill: #111; stroke: #000; stroke-width: 1.6; shape-rendering: geometricPrecision; }
+    .round { stroke-linejoin: round; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) { .ui { fill: #ddd; stroke: #fff; } .ink { fill: #fafafa; stroke: #fff; } }
+  </style>
+  <rect x="10" y="10" width="60" height="4" rx="2" class="ink round"/>
+  <rect x="35" y="14" width="10" height="30" rx="2" class="ui round body"/>
+</svg>

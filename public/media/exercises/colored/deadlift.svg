@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    @keyframes lift { 0%,100% { transform: translateY(10px);} 50% { transform: translateY(-8px);} }
+    .bar { animation: lift 1.2s infinite ease-in-out; transform-origin: 40px 60px; }
+    .ol * { stroke: #000; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    .outline { stroke: #000; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    @media (prefers-reduced-motion: reduce) { .bar { animation: none; } }
+  </style>
+  <rect x="8" y="64" width="64" height="6" rx="2" fill="#3B82F6" class="outline"/>
+  <g class="bar ol">
+    <rect x="15" y="56" width="50" height="4" rx="2" fill="#1F2937"/>
+    <circle cx="18" cy="58" r="4" fill="#EF4444"/>
+    <circle cx="62" cy="58" r="4" fill="#EF4444"/>
+  </g>
+  <circle cx="40" cy="48" r="3" fill="#111827" class="outline"/>
+  <rect x="36" y="51" width="8" height="8" rx="2" fill="#1F2937" class="outline"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    @keyframes ohp { 0%,100% { transform: translateY(8px);} 50% { transform: translateY(-8px);} }
+    .bar { animation: ohp 1.2s infinite ease-in-out; transform-origin: 40px 32px; }
+    @media (prefers-reduced-motion: reduce) { .bar { animation: none; } }
+
+    .ui { fill: #666; stroke: #000; stroke-width: 1.5; shape-rendering: geometricPrecision; }
+    .ink { fill: #111; stroke: #000; stroke-width: 1.6; shape-rendering: geometricPrecision; }
+    .round { stroke-linejoin: round; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) { .ui { fill: #ddd; stroke: #fff; } .ink { fill: #fafafa; stroke: #fff; } }
+  </style>
+  <rect x="12" y="62" width="56" height="6" rx="2" class="ui round"/>
+  <g class="bar">
+    <rect x="15" y="30" width="50" height="4" rx="2" class="ink round"/>
+    <circle cx="18" cy="32" r="4" class="ink"/>
+    <circle cx="62" cy="32" r="4" class="ink"/>
+  </g>
+  <!-- person pressing under bar (stationary) -->
+  <circle cx="40" cy="40" r="3" class="ink round"/>
+  <rect x="36" y="43" width="8" height="10" rx="2" class="ink round"/>
+</svg>

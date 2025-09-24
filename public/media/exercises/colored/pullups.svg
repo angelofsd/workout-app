@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    @keyframes pull { 0%,100% { transform: translateY(8px);} 50% { transform: translateY(-8px);} }
+    .body { animation: pull 1.3s infinite ease-in-out; transform-origin: 40px 20px; }
+    .outline { stroke: #000; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    @media (prefers-reduced-motion: reduce) { .body { animation: none; } }
+  </style>
+  <rect x="10" y="10" width="60" height="4" rx="2" fill="#1F2937" class="outline"/>
+  <rect x="35" y="14" width="10" height="30" rx="2" fill="#F59E0B" class="body outline"/>
+</svg>
