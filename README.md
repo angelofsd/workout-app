@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<h1 align="center">Simple Workout App</h1>
+<p align="center">Lightweight, client‑side workout tracker with animated exercise icons, PR logging (1–15 reps), warm‑up set insertion, and theme support.</p>
 
-## Getting Started
+## ✨ Features
+- Select, reorder, and customize exercises (add your own)
+- Plan sets (target reps + weight) and edit mid‑workout
+- Insert ad‑hoc warm‑up sets at the top during the workout
+- Rest timer with audio beep when complete
+- Automatic PR tracking (per exercise × reps 1–15)
+- Workout history (most recent 100 sessions) stored locally
+- Unit toggle (lb / kg) with conversion
+- Themes: Ocean, Sunset, Forest, White, or No theme
+- Animated SVG exercise illustrations (reduced-motion aware)
+- Accessibility: ARIA live region cues
+- Local persistence via `localStorage` only (no backend)
 
-First, run the development server:
+## 🧱 Tech Stack
+- Next.js 15 (App Router, Turbopack)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- LocalStorage (no external DB)
 
+## 🚀 Getting Started
+
+Install dependencies (if not already):
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run dev server:
+```bash
+npm run dev
+```
+Then visit: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Key Structure
+```
+src/
+	app/
+		page.tsx        # Main UI: setup, workout flow, state management
+		prs/page.tsx    # Personal records view
+		history/page.tsx# Workout history
+		error.tsx       # Runtime error boundary page
+	lib/
+		storage.ts      # Load/save PRs, settings, history, conversions
+		types.ts        # Shared type definitions
+		useCountdown.ts # Reusable countdown hook
+public/
+	media/exercises/           # Monochrome animated SVGs
+	media/exercises/colored/   # Color variants for White theme
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏃‍♂️ Workout Flow Overview
+1. Select and configure exercises (sets, reps, weight, rest)
+2. Begin workout → direct to input screen
+3. Submit a set → timer auto starts (can still enter next set while resting)
+4. Add warm-up set at any time (prepends new row)
+5. PRs silently update in the background
+6. Completing final set saves a session snapshot to history
 
-## Learn More
+## 🧮 Personal Records
+Each exercise tracks best weight for each rep count 1–15. Updating occurs automatically after logging a set (no extra UI interaction needed).
 
-To learn more about Next.js, take a look at the following resources:
+## 💾 Persistence
+All data (settings, PRs, history) lives in `localStorage`. Clearing browser storage resets the app. No network calls are performed.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎨 Themes & Media
+Theme choice changes background gradients (or pure white / none). White theme switches to colored SVGs with bold black outlines for clarity.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ♿ Accessibility
+- ARIA live region announces phase changes (start, rest, completion)
+- Reduced motion preference respected (disables SVG animation)
 
-## Deploy on Vercel
+## 🛠 Development Notes
+- Warm-up set insertion uses an internal offset to keep completed results aligned.
+- State is intentionally colocated in `page.tsx` to keep complexity low—can be refactored into slices/hooks if app expands.
+- No server components are used; everything is client-side for simplicity.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔐 Privacy
+All data is local to the user’s browser. No tracking or external storage.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📦 Production Build
+```bash
+npm run build
+npm start
+```
+
+## 🐛 Issues / Ideas
+Open a GitHub issue for feature requests (e.g. charts, export, supersets, RPE tracking).
+
+## 🤝 Contributing
+1. Fork & clone
+2. Create a feature branch
+3. Commit with clear messages
+4. Open a PR describing changes & rationale
+
+## 📄 License
+Add a LICENSE file (MIT recommended). If you want, ask and a template can be added.
+
+---
+For a deeper architectural orientation, see `agents.md` (for new contributors / automation agents).
+
+Enjoy the lifts! 🏋️
