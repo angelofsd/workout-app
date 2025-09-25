@@ -501,14 +501,24 @@ export default function WorkoutApp() {
                   draggable
                   onDragStart={() => setDragId(cfg.exerciseId)}
                   onDragOver={(e) => e.preventDefault()}
+                  onDragEnter={(e) => {
+                    // allow drop target to update while dragging
+                    e.preventDefault();
+                  }}
                   onDrop={() => {
                     if (!dragId || dragId === cfg.exerciseId) return;
                     setSelectedOrder((ord) => {
-                      const next = ord.filter((x) => x !== dragId);
-                      const idx = next.indexOf(cfg.exerciseId);
-                      if (idx < 0) return ord;
-                      next.splice(idx, 0, dragId);
-                      return [...next];
+                      const origIndex = ord.indexOf(dragId);
+                      const targetIndex = ord.indexOf(cfg.exerciseId);
+                      if (origIndex < 0 || targetIndex < 0) return ord;
+                      const next = [...ord];
+                      const [moved] = next.splice(origIndex, 1);
+                      // Insert using the original target index:
+                      // - If dragging downward (orig < target), this places after the target
+                      //   because target shifts left by one after removal.
+                      // - If dragging upward, it places before the target.
+                      next.splice(targetIndex, 0, moved);
+                      return next;
                     });
                     setDragId(null);
                   }}
