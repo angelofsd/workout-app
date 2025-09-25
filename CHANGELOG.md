@@ -9,6 +9,11 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 - Documentation: Expanded README with architecture/flow, added `agents.md` for new contributors.
+- Per-exercise rest times: each exercise can now override the default rest.
+- Input polish: auto-select on focus for reps, weight, target reps, and rest values.
+- Warm-up workflow: Add Set button inserts at top; fixed set numbering alignment once logging begins.
+- Visuals: thicker card borders in White theme; colored SVGs with black outlines for clarity.
+- Submit Set button: centered and label capitalized; New Workout button styled to match.
 
 ## [0.1.0] - 2025-09-24
 ### Added

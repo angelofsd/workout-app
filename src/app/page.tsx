@@ -126,10 +126,8 @@ export default function WorkoutApp() {
   const [resultsOffset, setResultsOffset] = useState<Record<string, number>>({});
   const [liveMessage, setLiveMessage] = useState<string>("");
 
-  // Ensure countdown resets when restSeconds changes
-  useEffect(() => {
-    reset(restSeconds);
-  }, [restSeconds, reset]);
+  // Note: We no longer reset the countdown when the global default restSeconds changes,
+  // because rest between sets should come from each exercise's override (when set).
 
   // ARIA live message helper
   const announce = (msg: string) => {
@@ -243,7 +241,7 @@ export default function WorkoutApp() {
       announce("Workout complete");
       return;
     }
-    const cfg = plan[next.exerciseIdx];
+  const cfg = plan[next.exerciseIdx];
     // Initialize set plan for next exercise if needed
     if (cfg) {
       setSetPlans((prev) => {
@@ -261,7 +259,9 @@ export default function WorkoutApp() {
     setWeightText(prefill === 0 ? "" : (settings.unit === "kg" ? String(Math.round(lbToKg(prefill) * 10) / 10) : String(prefill)));
     setActive(next);
     setRepsInput(0);
-    reset(restSeconds);
+    // Use per-exercise rest override if provided, otherwise fall back to global default
+    const restForNext = cfg?.restSeconds ?? restSeconds;
+    reset(restForNext);
     start();
     beepArmed.current = true;
     announce("Rest started");
@@ -318,7 +318,13 @@ export default function WorkoutApp() {
       return { ...prev, [exId]: { targetReps: nextTargets, weightLb: nextWeights } };
     });
     // Keep completed results aligned with rows by tracking an offset
-    setResultsOffset((prev) => ({ ...prev, [exId]: (prev[exId] ?? 0) + 1 }));
+    // Only shift offset if we already have logged results; if user hasn't logged any
+    // yet, the newly inserted set should be treated as the current first set without offset.
+    setResultsOffset((prev) => {
+      const alreadyDone = (results[exId]?.length ?? 0) > 0;
+      const current = prev[exId] ?? 0;
+      return { ...prev, [exId]: alreadyDone ? current + 1 : 0 };
+    });
     // Make the new top row the active set (warm-up first)
     setActive((prev) => ({ ...prev, setIdx: 0 }));
     setRepsInput(0);
@@ -568,8 +574,19 @@ export default function WorkoutApp() {
                       min={10}
                       max={600}
                       className="border rounded px-2 py-1"
-                      value={restSeconds}
-                      onChange={(e) => setRestSeconds(Number(e.target.value))}
+                      value={cfg.restSeconds ?? restSeconds}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          updateConfig(cfg.exerciseId, { restSeconds: undefined });
+                          return;
+                        }
+                        const v = Number(raw);
+                        if (!Number.isNaN(v)) {
+                          updateConfig(cfg.exerciseId, { restSeconds: v });
+                        }
+                      }}
                     />
                   </label>
                 </div>
@@ -682,10 +699,15 @@ export default function WorkoutApp() {
                     />
                   </label>
           <button
-            className="bg-foreground text-background rounded px-4 py-2 font-medium"
+            className={`rounded px-5 py-2.5 font-semibold transition
+              border-2 focus:outline-none focus:ring-4 shadow-sm
+              ${settings.theme === 'white'
+                ? 'bg-black text-white border-black hover:bg-neutral-900 focus:ring-black/20'
+                : 'bg-foreground text-background border-foreground hover:opacity-90 focus:ring-foreground/20'}
+            w-fit inline-flex items-center justify-center place-self-center`}
             onClick={recordSet}
           >
-            Submit set
+            Submit Set
           </button>
 
           {/* Completed sets for this exercise */}
@@ -870,10 +892,15 @@ export default function WorkoutApp() {
             })}
           </section>
           <button
-            className="bg-foreground text-background rounded px-4 py-2 w-fit"
+            className={`rounded px-5 py-2.5 font-semibold transition
+              border-2 focus:outline-none focus:ring-4 shadow-sm
+              ${settings.theme === 'white'
+                ? 'bg-black text-white border-black hover:bg-neutral-900 focus:ring-black/20'
+                : 'bg-foreground text-background border-foreground hover:opacity-90 focus:ring-foreground/20'}
+              w-fit inline-flex items-center justify-center`}
             onClick={() => setPhase("setup")}
           >
-            New workout
+            New Workout
           </button>
         </div>
       )}

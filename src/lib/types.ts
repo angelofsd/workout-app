@@ -10,6 +10,8 @@ export type ExerciseConfig = {
   targetReps: number;
   // Optional default weight (stored in pounds) set during setup for this workout
   weightLb?: number;
+  // Optional per-exercise rest in seconds (overrides global default)
+  restSeconds?: number;
 };
 
 export type WorkoutConfig = {
