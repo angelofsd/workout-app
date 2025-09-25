@@ -3,7 +3,8 @@
 
 ## ✨ Features
 - Select, reorder, and customize exercises (add your own)
-- Plan sets (target reps + weight) and edit mid‑workout
+- Plan sets (target reps + weight + rest) and edit mid‑workout
+- Per‑exercise rest overrides (with fallback to a default)
 - Insert ad‑hoc warm‑up sets at the top during the workout
 - Rest timer with audio beep when complete
 - Automatic PR tracking (per exercise × reps 1–15)
@@ -11,6 +12,7 @@
 - Unit toggle (lb / kg) with conversion
 - Themes: Ocean, Sunset, Forest, White, or No theme
 - Animated SVG exercise illustrations (reduced-motion aware)
+- Input UX: auto‑select values on focus for fast typing
 - Accessibility: ARIA live region cues
 - Local persistence via `localStorage` only (no backend)
 
@@ -52,7 +54,7 @@ public/
 ```
 
 ## 🏃‍♂️ Workout Flow Overview
-1. Select and configure exercises (sets, reps, weight, rest)
+1. Select and configure exercises (sets, reps, weight, per‑exercise rest)
 2. Begin workout → direct to input screen
 3. Submit a set → timer auto starts (can still enter next set while resting)
 4. Add warm-up set at any time (prepends new row)
@@ -76,6 +78,8 @@ Theme choice changes background gradients (or pure white / none). White theme sw
 - Warm-up set insertion uses an internal offset to keep completed results aligned.
 - State is intentionally colocated in `page.tsx` to keep complexity low—can be refactored into slices/hooks if app expands.
 - No server components are used; everything is client-side for simplicity.
+ - Rest countdown is started after each submission using the next exercise's `restSeconds` override if provided, otherwise the global default. We no longer auto-reset the timer when the default changes mid-session.
+ - Buttons: “Submit Set” and “New Workout” share the same theme-aware styling for visual consistency.
 
 ## 🔐 Privacy
 All data is local to the user’s browser. No tracking or external storage.
