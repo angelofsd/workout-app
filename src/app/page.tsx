@@ -476,7 +476,21 @@ export default function WorkoutApp() {
 
           {selectedOrder.filter((id) => !!selected[id]).length > 0 && (
             <section className="grid gap-3">
-              <h2 className="font-semibold">Configure sets, reps, weight, rest</h2>
+              <div className="flex items-end justify-between gap-3 flex-wrap">
+                <h2 className="font-semibold">Configure sets, reps, weight, rest</h2>
+                <label className="grid gap-1 text-sm">
+                  <span className="opacity-70">Default Rest (seconds)</span>
+                  <input
+                    type="number"
+                    min={10}
+                    max={600}
+                    className="border rounded px-2 py-1 w-36"
+                    value={restSeconds}
+                    onFocus={(e) => e.currentTarget.select()}
+                    onChange={(e) => setRestSeconds(Number(e.target.value))}
+                  />
+                </label>
+              </div>
               {selectedOrder
                 .filter((id) => !!selected[id])
                 .map((id) => selected[id]!)

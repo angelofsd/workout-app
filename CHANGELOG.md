@@ -8,12 +8,20 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Semantic Versioning: https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
-- Documentation: Expanded README with architecture/flow, added `agents.md` for new contributors.
+
+## [0.1.1] - 2025-09-25
+### Added
 - Per-exercise rest times: each exercise can now override the default rest.
+- Default Rest control in setup (fallback when an exercise has no override).
 - Input polish: auto-select on focus for reps, weight, target reps, and rest values.
-- Warm-up workflow: Add Set button inserts at top; fixed set numbering alignment once logging begins.
+
+### Changed
+- Submit Set button centered and label capitalized; New Workout button styled to match for consistency.
 - Visuals: thicker card borders in White theme; colored SVGs with black outlines for clarity.
-- Submit Set button: centered and label capitalized; New Workout button styled to match.
+
+### Fixed
+- Warm-up workflow: Add Set button inserts at top; fixed set numbering alignment once logging begins.
+- README expanded with architecture/flow; added `agents.md` for contributors.
 
 ## [0.1.0] - 2025-09-24
 ### Added
@@ -32,5 +40,6 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Fixed
 - Squat animation cohesion and floor overlap; made figures/readability consistent across themes.
 
-[Unreleased]: https://github.com/angelofsd/workout-app/compare/main...HEAD
+[Unreleased]: https://github.com/angelofsd/workout-app/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/angelofsd/workout-app/compare/0.1.0...v0.1.1
 [0.1.0]: https://github.com/angelofsd/workout-app/tree/main
