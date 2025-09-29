@@ -125,6 +125,26 @@ export default function WorkoutApp() {
   // Number of sets inserted at the top after logging started; keeps results aligned with rows
   const [resultsOffset, setResultsOffset] = useState<Record<string, number>>({});
   const [liveMessage, setLiveMessage] = useState<string>("");
+  // Total workout elapsed tracking
+  const [workoutStart, setWorkoutStart] = useState<number | null>(null);
+  const [workoutElapsed, setWorkoutElapsed] = useState<number>(0);
+  useEffect(() => {
+    if (phase === "input" && workoutStart == null) setWorkoutStart(Date.now());
+  }, [phase, workoutStart]);
+  useEffect(() => {
+    if (workoutStart == null || phase === "setup") return;
+    const id = window.setInterval(() => {
+      setWorkoutElapsed(Math.floor((Date.now() - workoutStart) / 1000));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [workoutStart, phase]);
+
+  function fmtElapsed(total: number) {
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
+    const s = Math.floor(total % 60).toString().padStart(2, "0");
+    return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
+  }
 
   // Note: We no longer reset the countdown when the global default restSeconds changes,
   // because rest between sets should come from each exercise's override (when set).
@@ -182,7 +202,9 @@ export default function WorkoutApp() {
     if (plan.length === 0) return;
     setActive({ exerciseIdx: 0, setIdx: 0 });
     setResults({});
-    setRepsInput(0);
+    // Prefill reps with target of first exercise
+    const firstPlan = plan[0];
+    setRepsInput(firstPlan?.targetReps ?? 0);
     // Prefill weight from configured default if present
     const first = plan[0];
     const prefillLb = first?.weightLb ?? 0;
@@ -241,7 +263,7 @@ export default function WorkoutApp() {
       announce("Workout complete");
       return;
     }
-  const cfg = plan[next.exerciseIdx];
+    const cfg = plan[next.exerciseIdx];
     // Initialize set plan for next exercise if needed
     if (cfg) {
       setSetPlans((prev) => {
@@ -258,13 +280,20 @@ export default function WorkoutApp() {
     setWeightLb(prefill);
     setWeightText(prefill === 0 ? "" : (settings.unit === "kg" ? String(Math.round(lbToKg(prefill) * 10) / 10) : String(prefill)));
     setActive(next);
-    setRepsInput(0);
-    // Use per-exercise rest override if provided, otherwise fall back to global default
-    const restForNext = cfg?.restSeconds ?? restSeconds;
-    reset(restForNext);
-    start();
-    beepArmed.current = true;
-    announce("Rest started");
+    const upcomingTarget = cfg ? (setPlans[cfg.exerciseId]?.targetReps?.[next.setIdx] ?? cfg.targetReps) : 0;
+    setRepsInput(upcomingTarget);
+    const startingNewExercise = next.setIdx === 0 && active.exerciseIdx !== next.exerciseIdx;
+    if (startingNewExercise) {
+      reset(0);
+      beepArmed.current = false;
+      announce("Next exercise ready");
+    } else {
+      const restForNext = cfg?.restSeconds ?? restSeconds;
+      reset(restForNext);
+      start();
+      beepArmed.current = true;
+      announce("Rest started");
+    }
   }
 
   function nextSet() {
@@ -384,7 +413,7 @@ export default function WorkoutApp() {
   }, [secondsLeft]);
 
   return (
-    <div className={`min-h-screen p-6 sm:p-10 ${
+    <div className={`min-h-screen p-6 sm:p-10 relative ${
       settings.theme === "none"
         ? ""
         : settings.theme === "sunset"
@@ -395,6 +424,11 @@ export default function WorkoutApp() {
         ? "bg-white text-black"
         : "bg-gradient-to-b from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30"
     }`}>
+      {phase !== 'setup' && phase !== 'done' && workoutStart != null && (
+        <div className="absolute top-2 right-3 text-xs font-mono bg-black/10 dark:bg-white/10 backdrop-blur rounded px-2 py-1 border border-black/10 dark:border-white/10">
+          {fmtElapsed(workoutElapsed)}
+        </div>
+      )}
       <div className="mb-6 grid gap-2 place-items-center text-center">
         <h1 className="text-2xl sm:text-3xl font-bold">Simple Workout App</h1>
         <nav className="flex items-center gap-3 text-sm flex-wrap justify-center">
@@ -543,6 +577,7 @@ export default function WorkoutApp() {
                       max={20}
                       className="border rounded px-2 py-1"
                       value={cfg.sets}
+                      onFocus={(e) => e.currentTarget.select()}
                       onChange={(e) =>
                         updateConfig(cfg.exerciseId, { sets: Number(e.target.value) })
                       }
@@ -660,10 +695,15 @@ export default function WorkoutApp() {
         <div className="mt-6 grid gap-6">
           {/* Rest timer displayed on input screen */}
           <div className="place-self-center">
-            <div className="inline-flex items-center justify-center rounded-full border-4 border-foreground/30 bg-foreground/10 px-8 py-6 shadow-md ring-2 ring-foreground/10">
-              <div className="text-5xl font-bold tabular-nums tracking-widest">{secondsToMMSS(secondsLeft)}</div>
+            <div className={`relative inline-flex items-center justify-center rounded-full border-4 border-foreground/30 bg-foreground/10 px-8 py-6 shadow-md ring-2 ring-foreground/10 transition ${secondsLeft === 0 ? 'animate-pulse ring-red-500/40 border-red-500 bg-red-500/10' : ''}` }>
+              <div className={`text-5xl font-bold tabular-nums tracking-widest ${secondsLeft === 0 ? 'text-red-600' : ''}`}>{secondsToMMSS(secondsLeft)}</div>
+              {secondsLeft === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-sm font-semibold text-red-700 drop-shadow">Times up! Lift Now!</div>
+                </div>
+              )}
             </div>
-            <div className="text-center mt-2 opacity-80">{running ? "Rest" : "Ready"}</div>
+            <div className="text-center mt-2 opacity-80">{secondsLeft === 0 ? '' : (running ? 'Rest' : 'Ready')}</div>
           </div>
           {/* Input controls */}
           <label className="grid gap-1">
@@ -807,6 +847,7 @@ export default function WorkoutApp() {
                                     const p = prev[exId] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
                                     const nextTargets = [...p.targetReps];
                                     nextTargets[i] = v;
+                                    if (i === active.setIdx) setRepsInput(v);
                                     return { ...prev, [exId]: { ...p, targetReps: nextTargets } };
                                   });
                                 }
