@@ -19,16 +19,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Ensure native select options are readable */
-.theme-select {
-  background-color: #fff !important;
-  color: #000 !important;
-}
-.theme-select option {
-  background-color: #fff;
-  color: #000;
-}
-
 /* Ensure native select dropdown is readable */
 .theme-select {
   background-color: #ffffff;
