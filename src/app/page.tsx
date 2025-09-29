@@ -438,8 +438,9 @@ export default function WorkoutApp() {
         : "bg-gradient-to-b from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30"
     }`}>
       {phase !== 'setup' && phase !== 'done' && workoutStart != null && (
-        <div className="absolute top-2 right-3 text-xs font-mono bg-black/10 dark:bg-white/10 backdrop-blur rounded px-2 py-1 border border-black/10 dark:border-white/10">
-          {fmtElapsed(workoutElapsed)}
+        <div className="absolute top-2 right-3 flex items-center gap-1 text-xs bg-black/10 dark:bg-white/10 backdrop-blur rounded px-2 py-1 border border-black/10 dark:border-white/10">
+          <span className="font-semibold font-sans whitespace-nowrap">Total Workout Time:</span>
+          <span className="font-mono">{fmtElapsed(workoutElapsed)}</span>
         </div>
       )}
       <div className="mb-6 grid gap-2 place-items-center text-center">
