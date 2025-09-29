@@ -120,6 +120,16 @@ export default function WorkoutApp() {
   const [history, setHistory] = useState(loadHistory());
   const { secondsLeft, reset, start, running } = useCountdown(restSeconds);
   const beepArmed = useRef(false);
+  // Rest state to differentiate an idle 0s (ready) from an actually completed rest
+  const [restState, setRestState] = useState<'idle' | 'running' | 'complete'>('idle');
+  // Track countdown transitions to set restState to complete only after an actual run
+  useEffect(() => {
+    if (running) return; // wait for stop to evaluate separately
+    // If timer just hit zero while we had been running, mark complete
+    if (secondsLeft === 0 && restState === 'running') {
+      setRestState('complete');
+    }
+  }, [secondsLeft, running, restState]);
   // Per-exercise plan for each set: target reps and weight (in lb)
   const [setPlans, setSetPlans] = useState<Record<string, { targetReps: number[]; weightLb: number[] }>>({});
   // Number of sets inserted at the top after logging started; keeps results aligned with rows
@@ -212,6 +222,7 @@ export default function WorkoutApp() {
     setWeightText(prefillLb === 0 ? "" : (settings.unit === "kg" ? String(Math.round(lbToKg(prefillLb) * 10) / 10) : String(prefillLb)));
     // Ensure timer isn't showing rest before first set
     reset(0);
+  setRestState('idle');
     // Initialize set plan for first exercise
     if (first) {
       setSetPlans((prev) => {
@@ -287,12 +298,14 @@ export default function WorkoutApp() {
       reset(0);
       beepArmed.current = false;
       announce("Next exercise ready");
+      setRestState('idle');
     } else {
       const restForNext = cfg?.restSeconds ?? restSeconds;
       reset(restForNext);
       start();
       beepArmed.current = true;
       announce("Rest started");
+      setRestState('running');
     }
   }
 
@@ -695,15 +708,21 @@ export default function WorkoutApp() {
         <div className="mt-6 grid gap-6">
           {/* Rest timer displayed on input screen */}
           <div className="place-self-center">
-            <div className={`relative inline-flex items-center justify-center rounded-full border-4 border-foreground/30 bg-foreground/10 px-8 py-6 shadow-md ring-2 ring-foreground/10 transition ${secondsLeft === 0 ? 'animate-pulse ring-red-500/40 border-red-500 bg-red-500/10' : ''}` }>
-              <div className={`text-5xl font-bold tabular-nums tracking-widest ${secondsLeft === 0 ? 'text-red-600' : ''}`}>{secondsToMMSS(secondsLeft)}</div>
-              {secondsLeft === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-sm font-semibold text-red-700 drop-shadow">Times up! Lift Now!</div>
-                </div>
-              )}
+            <div className={`inline-flex items-center justify-center rounded-full border-4 px-8 py-6 shadow-md ring-2 transition
+              ${restState === 'complete'
+                ? 'animate-pulse ring-red-500/40 border-red-500 bg-red-500/10 border-foreground/30'
+                : 'border-foreground/30 bg-foreground/10 ring-foreground/10'}
+            `}>
+              <div className={`text-5xl font-bold tabular-nums tracking-widest ${restState === 'complete' ? 'text-red-600' : ''}`}>{secondsToMMSS(secondsLeft)}</div>
             </div>
-            <div className="text-center mt-2 opacity-80">{secondsLeft === 0 ? '' : (running ? 'Rest' : 'Ready')}</div>
+            <div className="text-center mt-2 opacity-80">
+              {restState === 'complete' ? '' : (running ? 'Rest' : 'Ready')}
+            </div>
+            {restState === 'complete' && (
+              <div className="mt-2 text-center text-sm font-semibold">
+                Times up! Lift Now!
+              </div>
+            )}
           </div>
           {/* Input controls */}
           <label className="grid gap-1">
