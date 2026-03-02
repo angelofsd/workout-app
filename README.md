@@ -1,108 +1,145 @@
-<h1 align="center">Simple Workout App</h1>
-<p align="center">Lightweight, client‑side workout tracker with animated exercise icons, PR logging (1–15 reps), warm‑up set insertion, and theme support.</p>
+<h1 align="center">IronLog</h1>
+<p align="center">A sharp, mobile-first workout tracker with rest timers, PR logging, and session history. No backend — all data lives in your browser.</p>
 
-## ✨ Features
-- Select, reorder, and customize exercises (add your own)
-- Plan sets (target reps + weight + rest) and edit mid‑workout
-- Per‑exercise rest overrides (with fallback to a default)
-- Insert ad‑hoc warm‑up sets at the top during the workout
-- Rest timer with audio beep when complete
-- Automatic PR tracking (per exercise × reps 1–15)
-- Workout history (most recent 100 sessions) stored locally
-- Unit toggle (lb / kg) with conversion
-- Themes: Ocean, Sunset, Forest, White, or No theme
-- Animated SVG exercise illustrations (reduced-motion aware)
-- Input UX: auto‑select values on focus for fast typing
-- Accessibility: ARIA live region cues
-- Local persistence via `localStorage` only (no backend)
+## Features
 
-## 🧱 Tech Stack
+- **Exercise selection** — pick from defaults or add your own; drag to reorder
+- **Per-set planning** — configure sets, target reps, starting weight, and rest per exercise
+- **Live workout flow** — log reps & weight, rest timer auto-starts between sets with audio beep
+- **PR tracking** — best weight per exercise × rep count (1–15 reps), updated silently after each set
+- **Session history** — last 100 sessions with per-exercise volume totals
+- **Insert warm-up sets** — add a set at the top of any exercise mid-workout
+- **Unit toggle** — lb / kg with on-the-fly conversion
+- **Total workout timer** — elapsed time badge during active sessions
+- **Themes** — Ocean (default), Sunset, Forest, White, System
+- **Mobile-first responsive** — fixed bottom action bar, large tap targets, no number spinners
+- **Accessibility** — ARIA live region announces phase changes
+- **Privacy** — no network calls; `localStorage` only
+
+## Tech Stack
+
 - Next.js 15 (App Router, Turbopack)
 - React 19
 - TypeScript
 - Tailwind CSS v4
-- LocalStorage (no external DB)
 
-## 🚀 Getting Started
+## Getting Started
 
-Install dependencies (if not already):
 ```bash
 npm install
-```
-
-Run dev server:
-```bash
 npm run dev
 ```
+
 Then visit: http://localhost:3000
 
-## 📁 Key Structure
+## Key Structure
+
 ```
 src/
-	app/
-		page.tsx        # Main UI: setup, workout flow, state management
-		prs/page.tsx    # Personal records view
-		history/page.tsx# Workout history
-		error.tsx       # Runtime error boundary page
-	lib/
-		storage.ts      # Load/save PRs, settings, history, conversions
-		types.ts        # Shared type definitions
-		useCountdown.ts # Reusable countdown hook
+  app/
+    page.tsx          # Main UI: setup, workout flow, all state management
+    prs/page.tsx      # Personal records — best weight per rep range
+    history/page.tsx  # Session history with volume stats
+    layout.tsx        # Root layout, metadata, viewport
+    globals.css       # Design tokens, input reset, glass-card utility
+    error.tsx         # Runtime error boundary
+  lib/
+    storage.ts        # Load/save PRs, settings, history; unit conversions
+    types.ts          # Shared type definitions
+    useCountdown.ts   # Reusable countdown hook
 public/
-	media/exercises/           # Monochrome animated SVGs
-	media/exercises/colored/   # Color variants for White theme
+  media/exercises/          # Monochrome animated SVGs
+  media/exercises/colored/  # Color variants for White theme
 ```
 
-## 🏃‍♂️ Workout Flow Overview
-1. Select and configure exercises (sets, reps, weight, per‑exercise rest)
-2. Begin workout → direct to input screen
-3. Submit a set → timer auto starts (can still enter next set while resting)
-4. Add warm-up set at any time (prepends new row)
-5. PRs silently update in the background
-6. Completing final set saves a session snapshot to history
+## Design System
 
-## 🧮 Personal Records
-Each exercise tracks best weight for each rep count 1–15. Updating occurs automatically after logging a set (no extra UI interaction needed).
+All pages share a consistent set of theme-aware CSS class helpers derived from `settings.theme`:
 
-## 💾 Persistence
-All data (settings, PRs, history) lives in `localStorage`. Clearing browser storage resets the app. No network calls are performed.
+| Variable | Role |
+|----------|------|
+| `cardCls` | Card surface (glass on dark themes, white on light) |
+| `inputCls` | Form input background and border |
+| `mutedCls` | De-emphasized text |
+| `fgCls` | Primary text |
+| `sectionHeadCls` | Section label (uppercase, tight tracking) |
+| `navPillCls` | Header nav button |
+| `headerCls` | Sticky header background |
 
-## 🎨 Themes & Media
-Theme choice changes background gradients (or pure white / none). White theme switches to colored SVGs with bold black outlines for clarity.
+Dark themes (Ocean / Sunset / Forest) use glassmorphism: `bg-white/[0.07] border border-white/10 backdrop-blur-sm`.
+White theme uses plain card surfaces: `bg-white border border-gray-200`.
 
-## ♿ Accessibility
-- ARIA live region announces phase changes (start, rest, completion)
-- Reduced motion preference respected (disables SVG animation)
+## Workout Flow
 
-## 🛠 Development Notes
-- Warm-up set insertion uses an internal offset to keep completed results aligned.
-- State is intentionally colocated in `page.tsx` to keep complexity low—can be refactored into slices/hooks if app expands.
-- No server components are used; everything is client-side for simplicity.
- - Rest countdown is started after each submission using the next exercise's `restSeconds` override if provided, otherwise the global default. We no longer auto-reset the timer when the default changes mid-session.
- - Buttons: “Submit Set” and “New Workout” share the same theme-aware styling for visual consistency.
+1. **Setup** — select exercises, configure sets/reps/weight/rest; drag to reorder
+2. **Begin** — taps "Start Workout" in the fixed bottom bar
+3. **Log** — enter reps & weight, tap "Log Set"; rest timer starts automatically
+4. **Rest** — timer shown inline; color-coded (indigo = counting, amber = time's up)
+5. **Next set** — auto-advances; logging and resting happen on the same screen
+6. **Done** — session saved to history, PRs updated, volume summary shown
 
-## 🔐 Privacy
-All data is local to the user’s browser. No tracking or external storage.
+## Personal Records
 
-## 📦 Production Build
+Best weight for each (exercise, rep count) pair from 1–15 reps. Updated automatically after every set. Viewable at `/prs` with a "best lift" highlight and full rep-range grid.
+
+## History
+
+Each session stores: date, rest setting, unit at time, and all sets (reps, weightLb, timestamp). Volume totals are computed on the history page. Viewable at `/history`. Last 100 sessions retained.
+
+## Persistence
+
+All data lives in `localStorage` under three keys:
+
+| Key | Contents |
+|-----|----------|
+| `workoutapp_prs_v1` | PR records by exercise × reps |
+| `workoutapp_settings_v1` | Unit preference and theme |
+| `workoutapp_history_v1` | Array of session snapshots |
+
+Clearing browser storage resets the app. No export/import yet — see roadmap.
+
+## Roadmap / Known Gaps
+
+- [ ] Last-session reference shown while logging (biggest training aid missing)
+- [ ] Workout templates (save & reuse configurations)
+- [ ] Progress charts (weight over time per exercise)
+- [ ] Data export / import (JSON backup)
+- [ ] Progressive overload suggestions
+- [ ] 1RM estimator
+- [ ] Bodyweight + added weight support (weighted dips, etc.)
+- [ ] Muscle group filtering
+- [ ] Plate calculator
+- [ ] Workout notes / session rating
+- [ ] PWA / push notifications for rest timer
+
+## Development Notes
+
+- `iconsOff = true` in `page.tsx` suppresses SVG exercise icons in cards (toggle to re-enable).
+- `nextSet()` is defined but currently unused — `recordSet()` handles all advancement logic.
+- Warm-up set insertion uses `resultsOffset` to keep completed results aligned with rows after prepending.
+- Rest countdown uses the next exercise's `restSeconds` override if set, otherwise the global default. Timer is not auto-reset when the global default changes mid-session.
+- State is intentionally colocated in `page.tsx` for simplicity; extract to hooks/slices if complexity grows.
+
+## Privacy
+
+All data is local to the user's browser. No tracking, analytics, or external requests.
+
+## Production Build
+
 ```bash
 npm run build
 npm start
 ```
 
-## 🐛 Issues / Ideas
-Open a GitHub issue for feature requests (e.g. charts, export, supersets, RPE tracking).
+## Contributing
 
-## 🤝 Contributing
 1. Fork & clone
 2. Create a feature branch
 3. Commit with clear messages
-4. Open a PR describing changes & rationale
+4. Open a PR with a description of changes and rationale
 
-## 📄 License
-Add a LICENSE file (MIT recommended). If you want, ask and a template can be added.
+See `agents.md` for a deeper architectural orientation intended for new contributors and automation agents.
 
----
-For a deeper architectural orientation, see `agents.md` (for new contributors / automation agents).
+## License
 
-Enjoy the lifts! 🏋️
+MIT recommended — add a `LICENSE` file if publishing publicly.

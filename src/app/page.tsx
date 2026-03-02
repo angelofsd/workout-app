@@ -7,19 +7,23 @@ import { useCountdown } from "@/lib/useCountdown";
 import type { Unit, WorkoutSession } from "@/lib/types";
 import Link from "next/link";
 import Image from "next/image";
+
 function UnitToggle({ unit, onChange }: { unit: Unit; onChange: (u: Unit) => void }) {
   return (
-    <div className="inline-flex items-center gap-2 ml-3 align-middle">
-      <span className="text-sm opacity-70">Units:</span>
+    <div className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 p-0.5">
       <button
-        className={`px-2 py-1 rounded border ${unit === "lb" ? "bg-foreground text-background" : ""}`}
+        className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+          unit === "lb" ? "bg-white text-gray-900 shadow-sm" : "text-white/70 hover:text-white"
+        }`}
         onClick={() => onChange("lb")}
         type="button"
       >
         lb
       </button>
       <button
-        className={`px-2 py-1 rounded border ${unit === "kg" ? "bg-foreground text-background" : ""}`}
+        className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+          unit === "kg" ? "bg-white text-gray-900 shadow-sm" : "text-white/70 hover:text-white"
+        }`}
         onClick={() => onChange("kg")}
         type="button"
       >
@@ -44,12 +48,15 @@ function AddExercise({ onAdd }: { onAdd: (name: string) => void }) {
     >
       <input
         type="text"
-        placeholder="Add custom exercise"
-        className="border rounded px-2 py-1 flex-1"
+        placeholder="Add custom exercise…"
+        className="flex-1 rounded-xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm text-white placeholder-white/35 focus:border-indigo-400/60 focus:bg-white/12 transition"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <button type="submit" className="border rounded px-3 py-1 hover:bg-black/5 dark:hover:bg-white/10">
+      <button
+        type="submit"
+        className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/20 transition"
+      >
         Add
       </button>
     </form>
@@ -425,258 +432,881 @@ export default function WorkoutApp() {
     beepArmed.current = false;
   }, [secondsLeft]);
 
+  // ─── Theme helpers ────────────────────────────────────────────────────────────
+  const theme = settings.theme ?? "ocean";
+  const isWhite = theme === "white";
+  const isNone = theme === "none";
+  const isDarkTheme = !isWhite && !isNone;
+
+  const rootBg =
+    theme === "sunset"
+      ? "bg-gradient-to-br from-rose-950 via-orange-950 to-amber-950"
+      : theme === "forest"
+      ? "bg-gradient-to-br from-emerald-950 via-green-950 to-teal-950"
+      : theme === "white"
+      ? "bg-white text-gray-900"
+      : theme === "none"
+      ? ""
+      : "bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900"; // ocean
+
+  // Card styles
+  const cardCls = isWhite
+    ? "bg-white border border-gray-200 shadow-sm"
+    : isNone
+    ? "bg-foreground/[0.04] border border-foreground/10"
+    : "bg-white/[0.07] border border-white/10 backdrop-blur-sm";
+
+  // Input styles
+  const inputCls = isWhite
+    ? "bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400"
+    : isNone
+    ? "bg-foreground/5 border border-foreground/20"
+    : "bg-white/[0.08] border border-white/15 text-white placeholder-white/30";
+
+  // Muted text
+  const mutedCls = isWhite ? "text-gray-500" : isNone ? "text-foreground/50" : "text-white/50";
+
+  // Label text
+  const labelCls = isWhite ? "text-gray-600" : isNone ? "text-foreground/60" : "text-white/60";
+
+  // Primary foreground text
+  const fgCls = isWhite ? "text-gray-900" : isNone ? "text-foreground" : "text-white";
+
+  // Section header
+  const sectionHeadCls = isWhite
+    ? "text-gray-400 uppercase text-[10px] font-bold tracking-widest"
+    : isNone
+    ? "text-foreground/40 uppercase text-[10px] font-bold tracking-widest"
+    : "text-white/40 uppercase text-[10px] font-bold tracking-widest";
+
+  // Nav pill
+  const navPillCls = isWhite
+    ? "text-sm px-3 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
+    : isNone
+    ? "text-sm px-3 py-1 rounded-full border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
+    : "text-sm px-3 py-1 rounded-full border border-white/15 bg-white/8 hover:bg-white/15 text-white transition";
+
+  // Header bg
+  const headerCls = isWhite
+    ? "border-b border-gray-200 bg-white/90 backdrop-blur-md"
+    : isNone
+    ? "border-b border-foreground/10 bg-background/80 backdrop-blur-md"
+    : "border-b border-white/10 bg-black/20 backdrop-blur-md";
+
+  // ─── JSX ─────────────────────────────────────────────────────────────────────
+
   return (
-    <div className={`min-h-screen p-6 sm:p-10 relative ${
-      settings.theme === "none"
-        ? ""
-        : settings.theme === "sunset"
-        ? "bg-gradient-to-b from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30"
-        : settings.theme === "forest"
-        ? "bg-gradient-to-b from-emerald-100 to-lime-100 dark:from-emerald-900/30 dark:to-lime-900/30"
-        : settings.theme === "white"
-        ? "bg-white text-black"
-        : "bg-gradient-to-b from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30"
-    }`}>
-      {phase !== 'setup' && phase !== 'done' && workoutStart != null && (
-        <div className="absolute top-2 right-3 flex items-center gap-1 text-xs bg-black/10 dark:bg-white/10 backdrop-blur rounded px-2 py-1 border border-black/10 dark:border-white/10">
-          <span className="font-semibold font-sans whitespace-nowrap">Total Workout Time:</span>
-          <span className="font-mono">{fmtElapsed(workoutElapsed)}</span>
-        </div>
-      )}
-      <div className="mb-6 grid gap-2 place-items-center text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold">Simple Workout App</h1>
-        <nav className="flex items-center gap-3 text-sm flex-wrap justify-center">
-          <Link href="/prs" className="underline-offset-4 hover:underline">PRs</Link>
-          <span className="opacity-50">|</span>
-          <Link href="/history" className="underline-offset-4 hover:underline">History</Link>
-          <span className="opacity-50">|</span>
-          <label className="inline-flex items-center gap-2">
-            <span className="opacity-70">Theme:</span>
-            <select
-              className="theme-select border rounded px-2 py-1 bg-white text-black [color-scheme:light]"
-              value={settings.theme ?? "ocean"}
-              onChange={(e) => {
-                const next = { ...settings, theme: e.target.value as typeof settings.theme };
-                setSettings(next);
-                saveSettings(next);
-              }}
-            >
-              <option value="ocean">Ocean</option>
-              <option value="sunset">Sunset</option>
-              <option value="forest">Forest</option>
-              <option value="none">No theme</option>
-              <option value="white">White</option>
-            </select>
-          </label>
-        </nav>
-      </div>
+    <div className={`min-h-screen ${rootBg} ${isDarkTheme ? "text-white" : ""}`}>
+      {/* ARIA live region */}
       <div aria-live="polite" className="sr-only">{liveMessage}</div>
 
-      {phase === "setup" && (
-        <div className="grid gap-6">
-          <section className="grid gap-3">
-            <h2 className="font-semibold mb-2">Select exercises</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {exercises.map((ex) => {
-                const isSelected = !!selected[ex.id];
-                return (
-                  <button
-                    key={ex.id}
-                    onClick={() => toggleSelect(ex)}
-                    className={`text-left rounded p-3 transition hover:bg-black/5 dark:hover:bg-white/5 shadow-sm
-                      ${settings.theme === 'white'
-                        ? isSelected
-                          ? 'border-2 border-black'
-                          : 'border-2 border-black/60'
-                        : isSelected
-                          ? 'border border-foreground'
-                          : 'border border-black/20 dark:border-white/20'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {EXERCISE_MEDIA[ex.id] ? (
-                        <Image
-                          src={settings.theme === "white" ? `/media/exercises/colored/${ex.id}.svg` : EXERCISE_MEDIA[ex.id]}
-                          alt=""
-                          width={44}
-                          height={44}
-                          className={settings.theme === "white" ? "" : "filter contrast-125 brightness-110 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"}
-                        />
-                      ) : null}
-                      <div className="font-medium">{ex.name}</div>
-                    </div>
-                    <div className="text-xs opacity-70">{ex.type}</div>
-                    <div className="text-[11px] italic opacity-70 mt-1 leading-snug">
-                      {EXERCISE_MUSCLES[ex.id] ?? (ex.type === 'bodyweight' ? 'Bodyweight compound' : 'Custom exercise')}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            {/* Add custom exercise */}
-            <AddExercise onAdd={(name) => {
-              const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-              const exists = exercises.some((e) => e.id === id);
-              const newEx: Exercise = { id: exists ? `${id}_${Date.now()}` : id, name, type: "weights" };
-              setExercises((prev) => [...prev, newEx]);
-            }} />
-          </section>
+      {/* Workout elapsed timer — fixed badge */}
+      {phase !== "setup" && phase !== "done" && workoutStart != null && (
+        <div className={`fixed top-3 right-3 z-50 flex items-center gap-1.5 text-xs font-mono font-semibold rounded-full px-3 py-1.5 shadow-lg ${
+          isWhite
+            ? "bg-gray-900/90 text-white"
+            : "bg-black/60 backdrop-blur-md border border-white/10 text-white"
+        }`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+          {fmtElapsed(workoutElapsed)}
+        </div>
+      )}
 
-          {selectedOrder.filter((id) => !!selected[id]).length > 0 && (
-            <section className="grid gap-3">
-              <div className="flex items-end justify-between gap-3 flex-wrap">
-                <h2 className="font-semibold">Configure sets, reps, weight, rest</h2>
-                <label className="grid gap-1 text-sm">
-                  <span className="opacity-70">Default Rest (seconds)</span>
-                  <input
-                    type="number"
-                    min={10}
-                    max={600}
-                    className="border rounded px-2 py-1 w-36"
-                    value={restSeconds}
-                    onFocus={(e) => e.currentTarget.select()}
-                    onChange={(e) => setRestSeconds(Number(e.target.value))}
-                  />
-                </label>
-              </div>
-              {selectedOrder
-                .filter((id) => !!selected[id])
-                .map((id) => selected[id]!)
-                .map((cfg) => (
-                <div
-                  key={cfg.exerciseId}
-                  className="border rounded p-3 grid sm:grid-cols-5 gap-2 items-end"
-                  draggable
-                  onDragStart={() => setDragId(cfg.exerciseId)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDragEnter={(e) => {
-                    // allow drop target to update while dragging
-                    e.preventDefault();
-                  }}
-                  onDrop={() => {
-                    if (!dragId || dragId === cfg.exerciseId) return;
-                    setSelectedOrder((ord) => {
-                      const origIndex = ord.indexOf(dragId);
-                      const targetIndex = ord.indexOf(cfg.exerciseId);
-                      if (origIndex < 0 || targetIndex < 0) return ord;
-                      const next = [...ord];
-                      const [moved] = next.splice(origIndex, 1);
-                      // Insert using the original target index:
-                      // - If dragging downward (orig < target), this places after the target
-                      //   because target shifts left by one after removal.
-                      // - If dragging upward, it places before the target.
-                      next.splice(targetIndex, 0, moved);
-                      return next;
-                    });
-                    setDragId(null);
-                  }}
-                  aria-grabbed={dragId === cfg.exerciseId}
-                >
-                  <div className="sm:col-span-1">
-                    <div className="flex items-center gap-2">
-                      <span className="cursor-grab select-none" title="Drag to reorder">≡</span>
-                      <div>
-                        <div className="text-sm opacity-70">Exercise</div>
-                        <div className="font-medium">
-                          {exercises.find((e) => e.id === cfg.exerciseId)?.name}
+      {/* ── Sticky Header ── */}
+      <header className={`sticky top-0 z-40 ${headerCls}`}>
+        <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          <span className={`font-black text-lg tracking-tight ${fgCls}`}>IronLog</span>
+
+          <nav className="flex items-center gap-2 flex-wrap justify-end">
+            <Link href="/prs" className={navPillCls}>PRs</Link>
+            <Link href="/history" className={navPillCls}>History</Link>
+
+            {/* Theme selector */}
+            <div className="relative">
+              <select
+                className={`${navPillCls} pr-7 cursor-pointer`}
+                value={settings.theme ?? "ocean"}
+                onChange={(e) => {
+                  const next = { ...settings, theme: e.target.value as typeof settings.theme };
+                  setSettings(next);
+                  saveSettings(next);
+                }}
+              >
+                <option value="ocean">Ocean</option>
+                <option value="sunset">Sunset</option>
+                <option value="forest">Forest</option>
+                <option value="none">System</option>
+                <option value="white">White</option>
+              </select>
+              <svg
+                className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 ${mutedCls}`}
+                fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2}
+              >
+                <path d="M2 4l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      {/* ── Main Content ── */}
+      <main className="max-w-xl mx-auto px-4">
+
+        {/* ════════════════════════════════════════════
+            SETUP PHASE
+            ════════════════════════════════════════════ */}
+        {phase === "setup" && (
+          <div className="py-6 pb-32">
+
+            {/* Subtitle */}
+            <p className={`text-center text-sm mb-6 ${mutedCls}`}>
+              Pick exercises and configure your session
+            </p>
+
+            {/* ── Exercise Selection Grid ── */}
+            <section className="mb-6">
+              <p className={`${sectionHeadCls} mb-3`}>Exercises</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {exercises.map((ex) => {
+                  const isSelected = !!selected[ex.id];
+                  return (
+                    <button
+                      key={ex.id}
+                      onClick={() => toggleSelect(ex)}
+                      className={`relative text-left rounded-2xl p-3 border-2 transition-all duration-150 ${
+                        isSelected
+                          ? isWhite
+                            ? "border-indigo-500 bg-indigo-50 shadow-lg shadow-indigo-500/10"
+                            : "border-indigo-500/70 bg-indigo-500/15 shadow-lg shadow-indigo-500/10"
+                          : isWhite
+                          ? "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100"
+                          : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                      }`}
+                    >
+                      {/* Checkmark badge */}
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center shadow-sm">
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                            <path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
                         </div>
+                      )}
+
+                      {/* Exercise icon */}
+                      {!iconsOff && EXERCISE_MEDIA[ex.id] ? (
+                        <Image
+                          src={
+                            theme === "white"
+                              ? `/media/exercises/colored/${ex.id}.svg`
+                              : EXERCISE_MEDIA[ex.id]
+                          }
+                          alt=""
+                          width={36}
+                          height={36}
+                          className={`mb-2 ${isWhite ? "" : "opacity-90 brightness-110"}`}
+                        />
+                      ) : (
+                        <div className={`w-9 h-9 rounded-lg mb-2 flex items-center justify-center text-sm font-bold ${
+                          isWhite ? "bg-indigo-100 text-indigo-600" : "bg-white/10 text-white/60"
+                        }`}>
+                          {ex.name.charAt(0)}
+                        </div>
+                      )}
+
+                      <div className={`font-semibold text-sm leading-tight ${fgCls}`}>{ex.name}</div>
+                      <div className={`text-[10px] mt-0.5 leading-tight ${mutedCls}`}>
+                        {EXERCISE_MUSCLES[ex.id] ?? (ex.type === "bodyweight" ? "Bodyweight" : "Custom")}
                       </div>
-                    </div>
-                  </div>
-                  <label className="grid gap-1">
-                    <span className="text-sm opacity-70">Sets</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      className="border rounded px-2 py-1"
-                      value={cfg.sets}
-                      onFocus={(e) => e.currentTarget.select()}
-                      onChange={(e) =>
-                        updateConfig(cfg.exerciseId, { sets: Number(e.target.value) })
-                      }
-                    />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className="text-sm opacity-70">Target reps</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={15}
-                      className="border rounded px-2 py-1"
-                      value={cfg.targetReps}
-                      onFocus={(e) => e.currentTarget.select()}
-                      onChange={(e) =>
-                        updateConfig(cfg.exerciseId, { targetReps: Number(e.target.value) })
-                      }
-                    />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className="text-sm opacity-70">Weight ({settings.unit})</span>
-                    <input
-                      type="number"
-                      step={settings.unit === "kg" ? 0.5 : 1}
-                      min={0}
-                      max={2000}
-                      className="border rounded px-2 py-1"
-                      value={(() => {
-                        const lb = cfg.weightLb;
-                        if (!lb || lb === 0) return "";
-                        const v = settings.unit === "kg" ? Math.round(lbToKg(lb) * 10) / 10 : lb;
-                        return String(v);
-                      })()}
-                      placeholder="0"
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === "") {
-                          updateConfig(cfg.exerciseId, { weightLb: undefined });
-                          return;
-                        }
-                        const v = Number(raw);
-                        if (!Number.isNaN(v)) {
-                          const weightLbVal = settings.unit === "kg" ? kgToLb(v) : v;
-                          updateConfig(cfg.exerciseId, { weightLb: weightLbVal });
-                        }
-                      }}
-                    />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className="text-sm opacity-70">Rest (seconds)</span>
+                      <div className="mt-2">
+                        <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          ex.type === "bodyweight"
+                            ? isWhite
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-emerald-500/20 text-emerald-400"
+                            : isWhite
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-blue-500/20 text-blue-400"
+                        }`}>
+                          {ex.type}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ── Add Custom Exercise ── */}
+            <div className="mb-6">
+              {isWhite ? (
+                <form
+                  className="flex items-center gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const input = (e.currentTarget.elements.namedItem("name") as HTMLInputElement);
+                    const trimmed = input.value.trim();
+                    if (!trimmed) return;
+                    const id = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+                    const exists = exercises.some((e) => e.id === id);
+                    const newEx: Exercise = { id: exists ? `${id}_${Date.now()}` : id, name: trimmed, type: "weights" };
+                    setExercises((prev) => [...prev, newEx]);
+                    input.value = "";
+                  }}
+                >
+                  <input
+                    name="name"
+                    type="text"
+                    placeholder="Add custom exercise…"
+                    className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:outline-none transition"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-xl border border-gray-300 bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 transition"
+                  >
+                    Add
+                  </button>
+                </form>
+              ) : (
+                <AddExercise onAdd={(name) => {
+                  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+                  const exists = exercises.some((e) => e.id === id);
+                  const newEx: Exercise = { id: exists ? `${id}_${Date.now()}` : id, name, type: "weights" };
+                  setExercises((prev) => [...prev, newEx]);
+                }} />
+              )}
+            </div>
+
+            {/* ── Configure Section ── */}
+            {selectedOrder.filter((id) => !!selected[id]).length > 0 && (
+              <section className="mb-6">
+                <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                  <p className={sectionHeadCls}>Configure</p>
+                  <label className={`flex items-center gap-2 text-sm ${labelCls}`}>
+                    <span>Default rest</span>
                     <input
                       type="number"
                       min={10}
                       max={600}
-                      className="border rounded px-2 py-1"
-                      value={cfg.restSeconds ?? restSeconds}
+                      className={`w-14 text-center rounded-lg px-2 py-1 text-sm ${inputCls}`}
+                      value={restSeconds}
                       onFocus={(e) => e.currentTarget.select()}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === "") {
-                          updateConfig(cfg.exerciseId, { restSeconds: undefined });
-                          return;
-                        }
-                        const v = Number(raw);
-                        if (!Number.isNaN(v)) {
-                          updateConfig(cfg.exerciseId, { restSeconds: v });
-                        }
-                      }}
+                      onChange={(e) => setRestSeconds(Number(e.target.value))}
                     />
+                    <span>sec</span>
                   </label>
                 </div>
-              ))}
-            </section>
-          )}
 
-          <div className="flex items-center justify-center">
+                <div className="space-y-2">
+                  {selectedOrder
+                    .filter((id) => !!selected[id])
+                    .map((id) => selected[id]!)
+                    .map((cfg) => (
+                      <div
+                        key={cfg.exerciseId}
+                        className={`rounded-2xl p-4 ${cardCls}`}
+                        draggable
+                        onDragStart={() => setDragId(cfg.exerciseId)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDragEnter={(e) => { e.preventDefault(); }}
+                        onDrop={() => {
+                          if (!dragId || dragId === cfg.exerciseId) return;
+                          setSelectedOrder((ord) => {
+                            const origIndex = ord.indexOf(dragId);
+                            const targetIndex = ord.indexOf(cfg.exerciseId);
+                            if (origIndex < 0 || targetIndex < 0) return ord;
+                            const next = [...ord];
+                            const [moved] = next.splice(origIndex, 1);
+                            next.splice(targetIndex, 0, moved);
+                            return next;
+                          });
+                          setDragId(null);
+                        }}
+                        aria-grabbed={dragId === cfg.exerciseId}
+                      >
+                        {/* Exercise name row */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className={`cursor-grab select-none text-lg leading-none ${mutedCls}`} title="Drag to reorder">⠿</span>
+                          <span className={`font-semibold text-sm ${fgCls}`}>
+                            {exercises.find((e) => e.id === cfg.exerciseId)?.name}
+                          </span>
+                        </div>
+
+                        {/* Inputs grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <label className="grid gap-1">
+                            <span className={`text-[10px] ${sectionHeadCls}`}>Sets</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={20}
+                              className={`rounded-lg px-2 py-1.5 text-sm text-center ${inputCls}`}
+                              value={cfg.sets}
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) =>
+                                updateConfig(cfg.exerciseId, { sets: Number(e.target.value) })
+                              }
+                            />
+                          </label>
+
+                          <label className="grid gap-1">
+                            <span className={`text-[10px] ${sectionHeadCls}`}>Reps</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={15}
+                              className={`rounded-lg px-2 py-1.5 text-sm text-center ${inputCls}`}
+                              value={cfg.targetReps}
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) =>
+                                updateConfig(cfg.exerciseId, { targetReps: Number(e.target.value) })
+                              }
+                            />
+                          </label>
+
+                          <label className="grid gap-1">
+                            <span className={`text-[10px] ${sectionHeadCls}`}>Weight ({settings.unit})</span>
+                            <input
+                              type="number"
+                              step={settings.unit === "kg" ? 0.5 : 1}
+                              min={0}
+                              max={2000}
+                              className={`rounded-lg px-2 py-1.5 text-sm text-center ${inputCls}`}
+                              value={(() => {
+                                const lb = cfg.weightLb;
+                                if (!lb || lb === 0) return "";
+                                const v = settings.unit === "kg" ? Math.round(lbToKg(lb) * 10) / 10 : lb;
+                                return String(v);
+                              })()}
+                              placeholder="0"
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw === "") {
+                                  updateConfig(cfg.exerciseId, { weightLb: undefined });
+                                  return;
+                                }
+                                const v = Number(raw);
+                                if (!Number.isNaN(v)) {
+                                  const weightLbVal = settings.unit === "kg" ? kgToLb(v) : v;
+                                  updateConfig(cfg.exerciseId, { weightLb: weightLbVal });
+                                }
+                              }}
+                            />
+                          </label>
+
+                          <label className="grid gap-1">
+                            <span className={`text-[10px] ${sectionHeadCls}`}>Rest (s)</span>
+                            <input
+                              type="number"
+                              min={10}
+                              max={600}
+                              className={`rounded-lg px-2 py-1.5 text-sm text-center ${inputCls}`}
+                              value={cfg.restSeconds ?? restSeconds}
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw === "") {
+                                  updateConfig(cfg.exerciseId, { restSeconds: undefined });
+                                  return;
+                                }
+                                const v = Number(raw);
+                                if (!Number.isNaN(v)) {
+                                  updateConfig(cfg.exerciseId, { restSeconds: v });
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════
+            WORKOUT HEADER (input phase)
+            ════════════════════════════════════════════ */}
+        {phase !== "setup" && currentExercise && (
+          <div className="pt-5 pb-2">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                {active.exerciseIdx === 0 && active.setIdx === 0 && (
+                  <p className={`text-xs font-semibold mb-0.5 ${
+                    isWhite ? "text-indigo-500" : "text-indigo-400"
+                  }`}>Let&apos;s go!</p>
+                )}
+                <h2 className={`text-2xl font-black tracking-tight leading-tight ${fgCls}`}>
+                  {exercises.find((e) => e.id === currentExercise.exerciseId)?.name}
+                </h2>
+              </div>
+              <div className={`shrink-0 rounded-xl px-3 py-2 text-center ${
+                isWhite ? "bg-indigo-50 border border-indigo-200" : "bg-indigo-500/15 border border-indigo-500/30"
+              }`}>
+                <div className={`text-2xl font-black leading-none ${isWhite ? "text-indigo-600" : "text-indigo-300"}`}>
+                  {active.setIdx + 1}
+                  <span className={`text-sm font-medium ${isWhite ? "text-indigo-400" : "text-indigo-500"}`}>
+                    /{totalSetsThisExercise}
+                  </span>
+                </div>
+                <div className={`text-[10px] uppercase tracking-wider mt-0.5 ${isWhite ? "text-indigo-400" : "text-indigo-500"}`}>Set</div>
+              </div>
+            </div>
+
+            {/* Exercise progress pills */}
+            <div className="flex gap-1.5 mt-3 flex-wrap">
+              {plan.map((cfg, idx) => {
+                const exName = exercises.find((e) => e.id === cfg.exerciseId)?.name ?? cfg.exerciseId;
+                const isPast = idx < active.exerciseIdx;
+                const isCurrent = idx === active.exerciseIdx;
+                return (
+                  <span key={cfg.exerciseId} className={`text-[10px] px-2 py-0.5 rounded-full font-medium transition-all ${
+                    isPast
+                      ? isWhite ? "bg-emerald-100 text-emerald-600" : "bg-emerald-500/20 text-emerald-400"
+                      : isCurrent
+                      ? isWhite ? "bg-indigo-100 text-indigo-600 ring-1 ring-indigo-400" : "bg-indigo-500/25 text-indigo-300 ring-1 ring-indigo-500/50"
+                      : isWhite ? "bg-gray-100 text-gray-400" : "bg-white/5 text-white/30"
+                  }`}>
+                    {isPast ? "✓ " : ""}{exName}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Skip explicit cue screen */}
+        {phase === "cue" && null}
+
+        {/* ════════════════════════════════════════════
+            INPUT PHASE
+            ════════════════════════════════════════════ */}
+        {phase === "input" && (
+          <div className="pb-8">
+
+            {/* ── Rest Timer ── */}
+            <div className="flex justify-center my-5">
+              <div className={`rounded-2xl px-10 py-5 text-center transition-all duration-300 ${
+                restState === "complete"
+                  ? isWhite
+                    ? "bg-amber-50 border-2 border-amber-400 shadow-lg shadow-amber-200"
+                    : "bg-amber-500/10 border-2 border-amber-500/50 shadow-xl shadow-amber-500/10"
+                  : running
+                  ? isWhite
+                    ? "bg-indigo-50 border-2 border-indigo-300 shadow-lg shadow-indigo-100"
+                    : "bg-indigo-500/10 border-2 border-indigo-500/40 shadow-xl shadow-indigo-500/10"
+                  : isWhite
+                  ? "bg-gray-50 border-2 border-gray-200"
+                  : "bg-white/5 border-2 border-white/10"
+              }`}>
+                <div className={`text-6xl font-black tabular-nums font-mono leading-none ${
+                  restState === "complete"
+                    ? isWhite ? "text-amber-500" : "text-amber-400"
+                    : running
+                    ? isWhite ? "text-indigo-600" : "text-indigo-400"
+                    : fgCls
+                }`}>
+                  {secondsToMMSS(secondsLeft)}
+                </div>
+                <div className={`text-xs mt-2 font-medium uppercase tracking-widest ${
+                  restState === "complete"
+                    ? isWhite ? "text-amber-600" : "text-amber-400"
+                    : mutedCls
+                }`}>
+                  {restState === "complete"
+                    ? "Time's up — Lift now!"
+                    : running
+                    ? "Resting"
+                    : "Ready"}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Reps + Weight inputs ── */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className={`rounded-2xl p-4 ${cardCls}`}>
+                <div className={`text-[10px] ${sectionHeadCls} mb-2`}>Reps performed</div>
+                <input
+                  type="number"
+                  min={0}
+                  max={50}
+                  className={`w-full text-4xl font-black bg-transparent border-none outline-none leading-none ${fgCls}`}
+                  value={repsInput}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => setRepsInput(Number(e.target.value))}
+                />
+              </div>
+
+              <div className={`rounded-2xl p-4 ${cardCls}`}>
+                <div className={`text-[10px] ${sectionHeadCls} mb-2`}>Weight ({settings.unit})</div>
+                <input
+                  type="number"
+                  step={settings.unit === "kg" ? 0.5 : 1}
+                  min={0}
+                  max={2000}
+                  className={`w-full text-4xl font-black bg-transparent border-none outline-none leading-none ${fgCls}`}
+                  value={weightText}
+                  placeholder="0"
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setWeightText(raw);
+                    if (raw === "" || raw === "-") {
+                      setWeightLb(0);
+                      if (currentExercise) {
+                        setSetPlans((prev) => {
+                          const id = currentExercise.exerciseId;
+                          const planFor = prev[id] ?? {
+                            targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                            weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                          };
+                          const weights = [...planFor.weightLb];
+                          weights[active.setIdx] = 0;
+                          return { ...prev, [id]: { ...planFor, weightLb: weights } };
+                        });
+                      }
+                      return;
+                    }
+                    const v = Number(raw);
+                    if (!Number.isNaN(v)) {
+                      const lb = settings.unit === "kg" ? kgToLb(v) : v;
+                      setWeightLb(lb);
+                      if (currentExercise) {
+                        setSetPlans((prev) => {
+                          const id = currentExercise.exerciseId;
+                          const planFor = prev[id] ?? {
+                            targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                            weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                          };
+                          const weights = [...planFor.weightLb];
+                          weights[active.setIdx] = lb;
+                          return { ...prev, [id]: { ...planFor, weightLb: weights } };
+                        });
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* ── Log Set button ── */}
             <button
-              className={`mt-2 inline-flex items-center justify-center rounded-full px-6 py-3 text-base sm:text-lg font-semibold
-                         border-2 shadow-lg focus:outline-none focus:ring-4
-                         hover:scale-[1.02] active:scale-[0.99] transition disabled:opacity-50
-                         ${settings.theme === "sunset" ? "text-white bg-pink-600 border-pink-700 hover:bg-pink-700 focus:ring-pink-400/60" : settings.theme === "forest" ? "text-white bg-emerald-600 border-emerald-700 hover:bg-emerald-700 focus:ring-emerald-400/60" : settings.theme === "none" ? "text-foreground bg-background border-foreground/30 hover:bg-black/5 dark:hover:bg-white/10 focus:ring-foreground/30" : "text-white bg-blue-600 border-blue-700 hover:bg-blue-700 focus:ring-blue-400/60"}`}
-              disabled={plan.length === 0}
-              onClick={beginWorkout}
+              className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-[0.98] ${
+                isWhite
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/25"
+              }`}
+              onClick={recordSet}
             >
-              Begin workout
+              Log Set
+            </button>
+
+            {/* ── Sets Table ── */}
+            <section className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <p className={sectionHeadCls}>All Sets</p>
+                <button
+                  type="button"
+                  className={`text-xs px-3 py-1 rounded-full transition ${
+                    isWhite
+                      ? "border border-gray-300 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "border border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
+                  }`}
+                  onClick={addSetAtTop}
+                  aria-label="Add set to top"
+                >
+                  + Add Set
+                </button>
+              </div>
+
+              <div className={`rounded-2xl overflow-hidden ${cardCls}`}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={`border-b ${isWhite ? "border-gray-200" : "border-white/10"}`}>
+                        <th className={`text-left px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider ${mutedCls}`}>#</th>
+                        <th className={`text-left px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider ${mutedCls}`}>Reps</th>
+                        <th className={`text-left px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider ${mutedCls}`}>Target</th>
+                        <th className={`text-left px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider ${mutedCls}`}>Weight ({settings.unit})</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        if (!currentExercise) return null;
+                        const exId = currentExercise.exerciseId;
+                        const planFor = setPlans[exId] ?? {
+                          targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                          weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                        };
+                        const done = results[exId] ?? [];
+                        const offset = resultsOffset[exId] ?? 0;
+                        return Array.from({ length: totalSetsThisExercise }, (_, i) => {
+                          const doneIdx = i - offset;
+                          const isDone = doneIdx >= 0 && doneIdx < done.length;
+                          const isCurrent = i === active.setIdx;
+                          const targetVal = planFor.targetReps[i] ?? currentExercise.targetReps;
+                          const weightLbVal = planFor.weightLb[i] ?? (currentExercise.weightLb ?? 0);
+                          const weightStr = weightLbVal
+                            ? String(settings.unit === "kg" ? Math.round(lbToKg(weightLbVal) * 10) / 10 : weightLbVal)
+                            : "";
+                          return (
+                            <tr
+                              key={i}
+                              className={`border-b last:border-0 align-middle transition-colors ${
+                                isDone
+                                  ? isWhite ? "bg-emerald-50/60" : "bg-emerald-500/5"
+                                  : isCurrent
+                                  ? isWhite ? "bg-indigo-50/80" : "bg-indigo-500/8"
+                                  : ""
+                              } ${isWhite ? "border-gray-100" : "border-white/5"}`}
+                            >
+                              <td className={`px-4 py-2.5 font-mono text-xs ${
+                                isDone
+                                  ? isWhite ? "text-emerald-600" : "text-emerald-400"
+                                  : isCurrent
+                                  ? isWhite ? "text-indigo-600 font-bold" : "text-indigo-400 font-bold"
+                                  : mutedCls
+                              }`}>
+                                {isDone ? "✓" : isCurrent ? "▶" : i + 1}
+                              </td>
+
+                              {/* Reps cell */}
+                              <td className="px-4 py-2.5">
+                                {isDone ? (
+                                  <span className={`font-semibold ${fgCls}`}>{done[doneIdx].reps}</span>
+                                ) : isCurrent ? (
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={50}
+                                    className={`w-16 rounded-lg px-2 py-1 text-sm text-center ${inputCls}`}
+                                    value={repsInput}
+                                    onFocus={(e) => e.currentTarget.select()}
+                                    onChange={(e) => setRepsInput(Number(e.target.value))}
+                                  />
+                                ) : (
+                                  <span className={mutedCls}>–</span>
+                                )}
+                              </td>
+
+                              {/* Target reps cell */}
+                              <td className="px-4 py-2.5">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={50}
+                                  className={`w-16 rounded-lg px-2 py-1 text-sm text-center ${inputCls} disabled:opacity-50`}
+                                  value={targetVal}
+                                  disabled={isDone}
+                                  onFocus={(e) => e.currentTarget.select()}
+                                  onChange={(e) => {
+                                    const v = Number(e.target.value);
+                                    if (!Number.isNaN(v)) {
+                                      setSetPlans((prev) => {
+                                        const p = prev[exId] ?? {
+                                          targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                                          weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                                        };
+                                        const nextTargets = [...p.targetReps];
+                                        nextTargets[i] = v;
+                                        if (i === active.setIdx) setRepsInput(v);
+                                        return { ...prev, [exId]: { ...p, targetReps: nextTargets } };
+                                      });
+                                    }
+                                  }}
+                                />
+                              </td>
+
+                              {/* Weight cell */}
+                              <td className="px-4 py-2.5">
+                                {isDone ? (
+                                  <span className={`font-semibold ${fgCls}`}>
+                                    {settings.unit === "kg" ? lbToKg(done[doneIdx].weightLb) : done[doneIdx].weightLb}
+                                  </span>
+                                ) : isCurrent ? (
+                                  <input
+                                    type="number"
+                                    step={settings.unit === "kg" ? 0.5 : 1}
+                                    min={0}
+                                    max={2000}
+                                    className={`w-20 rounded-lg px-2 py-1 text-sm text-center ${inputCls}`}
+                                    value={weightText}
+                                    placeholder="0"
+                                    onFocus={(e) => e.currentTarget.select()}
+                                    onChange={(e) => {
+                                      const raw = e.target.value;
+                                      setWeightText(raw);
+                                      if (raw === "" || raw === "-") {
+                                        setWeightLb(0);
+                                        setSetPlans((prev) => {
+                                          const p = prev[exId] ?? {
+                                            targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                                            weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                                          };
+                                          const nextWeights = [...p.weightLb];
+                                          nextWeights[i] = 0;
+                                          return { ...prev, [exId]: { ...p, weightLb: nextWeights } };
+                                        });
+                                        return;
+                                      }
+                                      const v = Number(raw);
+                                      if (!Number.isNaN(v)) {
+                                        const lb = settings.unit === "kg" ? kgToLb(v) : v;
+                                        setWeightLb(lb);
+                                        setSetPlans((prev) => {
+                                          const p = prev[exId] ?? {
+                                            targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                                            weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                                          };
+                                          const nextWeights = [...p.weightLb];
+                                          nextWeights[i] = lb;
+                                          return { ...prev, [exId]: { ...p, weightLb: nextWeights } };
+                                        });
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <input
+                                    type="number"
+                                    step={settings.unit === "kg" ? 0.5 : 1}
+                                    min={0}
+                                    max={2000}
+                                    className={`w-20 rounded-lg px-2 py-1 text-sm text-center ${inputCls}`}
+                                    value={weightStr}
+                                    placeholder="0"
+                                    onFocus={(e) => e.currentTarget.select()}
+                                    onChange={(e) => {
+                                      const raw = e.target.value;
+                                      setSetPlans((prev) => {
+                                        const p = prev[exId] ?? {
+                                          targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps),
+                                          weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0),
+                                        };
+                                        const nextWeights = [...p.weightLb];
+                                        if (raw === "") {
+                                          nextWeights[i] = 0;
+                                        } else {
+                                          const v = Number(raw);
+                                          if (!Number.isNaN(v)) {
+                                            nextWeights[i] = settings.unit === "kg" ? kgToLb(v) : v;
+                                          }
+                                        }
+                                        return { ...prev, [exId]: { ...p, weightLb: nextWeights } };
+                                      });
+                                    }}
+                                  />
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {phase === "rest" && null}
+
+        {/* ════════════════════════════════════════════
+            DONE PHASE
+            ════════════════════════════════════════════ */}
+        {phase === "done" && (
+          <div className="py-8 pb-16">
+
+            {/* Completion header */}
+            <div className="text-center mb-8">
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+                isWhite
+                  ? "bg-emerald-100 border-2 border-emerald-300"
+                  : "bg-emerald-500/20 border-2 border-emerald-500/40"
+              }`}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                  className={isWhite ? "text-emerald-600" : "text-emerald-400"}>
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h2 className={`text-3xl font-black tracking-tight mb-1 ${fgCls}`}>Session Complete</h2>
+              <p className={`text-sm ${mutedCls}`}>
+                {workoutStart
+                  ? `Finished in ${fmtElapsed(workoutElapsed)}`
+                  : "Great work today."}
+              </p>
+            </div>
+
+            {/* Volume summary */}
+            <div className="space-y-3 mb-8">
+              {plan.map((cfg) => {
+                const name = exercises.find((e) => e.id === cfg.exerciseId)?.name;
+                const sets = results[cfg.exerciseId] ?? [];
+                const totalVol = sets.reduce((sum, s) => sum + s.reps * (settings.unit === "kg" ? lbToKg(s.weightLb) : s.weightLb), 0);
+                return (
+                  <div key={cfg.exerciseId} className={`rounded-2xl p-4 ${cardCls}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`font-bold text-sm ${fgCls}`}>{name}</span>
+                      {totalVol > 0 && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          isWhite ? "bg-indigo-100 text-indigo-600" : "bg-indigo-500/20 text-indigo-400"
+                        }`}>
+                          {Math.round(totalVol).toLocaleString()} {settings.unit} vol
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      {sets.map((s, i) => (
+                        <div key={i} className={`flex items-center justify-between text-sm ${mutedCls}`}>
+                          <span className="font-mono text-xs">Set {i + 1}</span>
+                          <span className={fgCls}>
+                            {s.reps} reps{s.weightLb > 0 ? ` × ${settings.unit === "kg" ? lbToKg(s.weightLb) : s.weightLb} ${settings.unit}` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* New workout button */}
+            <button
+              className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg ${
+                isWhite
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/25"
+              }`}
+              onClick={() => setPhase("setup")}
+            >
+              New Workout
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* ════════════════════════════════════════════
+          FIXED BOTTOM BAR — Setup phase only
+          ════════════════════════════════════════════ */}
+      {phase === "setup" && (
+        <div className={`fixed bottom-0 left-0 right-0 z-40 ${
+          isWhite
+            ? "border-t border-gray-200 bg-white/95 backdrop-blur-md"
+            : "border-t border-white/10 bg-black/30 backdrop-blur-md"
+        }`}>
+          <div className="max-w-xl mx-auto px-4 py-3 flex items-center gap-3">
+            <button
+              onClick={beginWorkout}
+              disabled={plan.length === 0}
+              className={`flex-1 py-3 rounded-full font-bold transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] ${
+                isWhite
+                  ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200 disabled:shadow-none"
+                  : "bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/30 disabled:shadow-none"
+              }`}
+            >
+              {plan.length === 0
+                ? "Select exercises to begin"
+                : `Start Workout · ${plan.length} exercise${plan.length !== 1 ? "s" : ""}`}
             </button>
             <UnitToggle
               unit={settings.unit}
@@ -687,306 +1317,6 @@ export default function WorkoutApp() {
               }}
             />
           </div>
-        </div>
-      )}
-
-      {phase !== "setup" && currentExercise && (
-        <div className="grid gap-2 mt-4 place-items-center text-center">
-          {active.exerciseIdx === 0 && active.setIdx === 0 ? (
-            <div className="text-2xl font-bold">Begin Workout!</div>
-          ) : null}
-          <div className="text-lg font-semibold">
-            {exercises.find((e) => e.id === currentExercise.exerciseId)?.name} — Set {active.setIdx + 1} of {totalSetsThisExercise}
-          </div>
-          {/* PRs hidden during workout per request */}
-        </div>
-      )}
-
-      {/* Skip explicit cue screen; go straight to input on begin/next */}
-      {phase === "cue" && null}
-
-      {phase === "input" && (
-        <div className="mt-6 grid gap-6">
-          {/* Rest timer displayed on input screen */}
-          <div className="place-self-center">
-            <div className={`inline-flex items-center justify-center rounded-full border-4 px-8 py-6 shadow-md ring-2 transition
-              ${restState === 'complete'
-                ? 'animate-pulse ring-red-500/40 border-red-500 bg-red-500/10 border-foreground/30'
-                : 'border-foreground/30 bg-foreground/10 ring-foreground/10'}
-            `}>
-              <div className={`text-5xl font-bold tabular-nums tracking-widest ${restState === 'complete' ? 'text-red-600' : ''}`}>{secondsToMMSS(secondsLeft)}</div>
-            </div>
-            <div className="text-center mt-2 opacity-80">
-              {restState === 'complete' ? '' : (running ? 'Rest' : 'Ready')}
-            </div>
-            {restState === 'complete' && (
-              <div className="mt-2 text-center text-sm font-semibold">
-                Times up! Lift Now!
-              </div>
-            )}
-          </div>
-          {/* Input controls */}
-          <label className="grid gap-1">
-            <span className="text-sm opacity-70">Reps performed</span>
-            <input
-              type="number"
-              min={0}
-              max={50}
-              className="border rounded px-2 py-1"
-              value={repsInput}
-              onFocus={(e) => e.currentTarget.select()}
-              onChange={(e) => setRepsInput(Number(e.target.value))}
-            />
-          </label>
-                  <label className="grid gap-1">
-                    <span className="text-sm opacity-70">Weight ({settings.unit})</span>
-                    <input
-                      type="number"
-                      step={settings.unit === "kg" ? 0.5 : 1}
-                      min={0}
-                      max={2000}
-                      className="border rounded px-2 py-1"
-              value={weightText}
-              placeholder="0"
-              onChange={(e) => {
-                const raw = e.target.value;
-                setWeightText(raw);
-                if (raw === "" || raw === "-") {
-                  setWeightLb(0);
-                  // sync into plan for current set
-                  if (currentExercise) {
-                    setSetPlans((prev) => {
-                      const id = currentExercise.exerciseId;
-                      const planFor = prev[id] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                      const weights = [...planFor.weightLb];
-                      weights[active.setIdx] = 0;
-                      return { ...prev, [id]: { ...planFor, weightLb: weights } };
-                    });
-                  }
-                  return;
-                }
-                const v = Number(raw);
-                if (!Number.isNaN(v)) {
-                  const lb = settings.unit === "kg" ? kgToLb(v) : v;
-                  setWeightLb(lb);
-                  if (currentExercise) {
-                    setSetPlans((prev) => {
-                      const id = currentExercise.exerciseId;
-                      const planFor = prev[id] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                      const weights = [...planFor.weightLb];
-                      weights[active.setIdx] = lb;
-                      return { ...prev, [id]: { ...planFor, weightLb: weights } };
-                    });
-                  }
-                }
-              }}
-                    />
-                  </label>
-          <button
-            className={`rounded px-5 py-2.5 font-semibold transition
-              border-2 focus:outline-none focus:ring-4 shadow-sm
-              ${settings.theme === 'white'
-                ? 'bg-black text-white border-black hover:bg-neutral-900 focus:ring-black/20'
-                : 'bg-foreground text-background border-foreground hover:opacity-90 focus:ring-foreground/20'}
-            w-fit inline-flex items-center justify-center place-self-center`}
-            onClick={recordSet}
-          >
-            Submit Set
-          </button>
-
-          {/* Completed sets for this exercise */}
-          <section className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold">Sets</h3>
-              <button
-                type="button"
-                className="text-sm border rounded px-3 py-1 hover:bg-black/5 dark:hover:bg-white/10"
-                onClick={addSetAtTop}
-                aria-label="Add set to top"
-              >
-                Add Set
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 pr-4">Set</th>
-                    <th className="text-left py-2 pr-4">Reps</th>
-                    <th className="text-left py-2 pr-4">Target reps</th>
-                    <th className="text-left py-2 pr-4">Weight ({settings.unit})</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    if (!currentExercise) return null;
-                    const exId = currentExercise.exerciseId;
-                    const planFor = setPlans[exId] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                    const done = results[exId] ?? [];
-                    const offset = resultsOffset[exId] ?? 0;
-                    return Array.from({ length: totalSetsThisExercise }, (_, i) => {
-                      const doneIdx = i - offset;
-                      const isDone = doneIdx >= 0 && doneIdx < done.length;
-                      const isCurrent = i === active.setIdx;
-                      const targetVal = planFor.targetReps[i] ?? currentExercise.targetReps;
-                      const weightLbVal = planFor.weightLb[i] ?? (currentExercise.weightLb ?? 0);
-                      const weightStr = weightLbVal ? String(settings.unit === "kg" ? Math.round(lbToKg(weightLbVal) * 10) / 10 : weightLbVal) : "";
-                      return (
-                        <tr key={i} className="border-b last:border-0 align-middle">
-                          <td className="py-2 pr-4">{i + 1}</td>
-                          <td className="py-2 pr-4">
-                            {isDone ? (
-                              <span>{done[doneIdx].reps}</span>
-                            ) : isCurrent ? (
-                              <input
-                                type="number"
-                                min={0}
-                                max={50}
-                                className="border rounded px-2 py-1 w-24"
-                                value={repsInput}
-                                onFocus={(e) => e.currentTarget.select()}
-                                onChange={(e) => setRepsInput(Number(e.target.value))}
-                              />
-                            ) : (
-                              <span className="opacity-50">–</span>
-                            )}
-                          </td>
-                          <td className="py-2 pr-4">
-                            <input
-                              type="number"
-                              min={1}
-                              max={50}
-                              className="border rounded px-2 py-1 w-24"
-                              value={targetVal}
-                              disabled={isDone}
-                              onFocus={(e) => e.currentTarget.select()}
-                              onChange={(e) => {
-                                const v = Number(e.target.value);
-                                if (!Number.isNaN(v)) {
-                                  setSetPlans((prev) => {
-                                    const p = prev[exId] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                                    const nextTargets = [...p.targetReps];
-                                    nextTargets[i] = v;
-                                    if (i === active.setIdx) setRepsInput(v);
-                                    return { ...prev, [exId]: { ...p, targetReps: nextTargets } };
-                                  });
-                                }
-                              }}
-                            />
-                          </td>
-                          <td className="py-2 pr-4">
-                            {isDone ? (
-                              <span>{settings.unit === "kg" ? lbToKg(done[doneIdx].weightLb) : done[doneIdx].weightLb}</span>
-                            ) : isCurrent ? (
-                              <input
-                                type="number"
-                                step={settings.unit === "kg" ? 0.5 : 1}
-                                min={0}
-                                max={2000}
-                                className="border rounded px-2 py-1 w-28"
-                                value={weightText}
-                                placeholder="0"
-                                onFocus={(e) => e.currentTarget.select()}
-                                onChange={(e) => {
-                                  const raw = e.target.value;
-                                  setWeightText(raw);
-                                  if (raw === "" || raw === "-") {
-                                    setWeightLb(0);
-                                    setSetPlans((prev) => {
-                                      const p = prev[exId] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                                      const nextWeights = [...p.weightLb];
-                                      nextWeights[i] = 0;
-                                      return { ...prev, [exId]: { ...p, weightLb: nextWeights } };
-                                    });
-                                    return;
-                                  }
-                                  const v = Number(raw);
-                                  if (!Number.isNaN(v)) {
-                                    const lb = settings.unit === "kg" ? kgToLb(v) : v;
-                                    setWeightLb(lb);
-                                    setSetPlans((prev) => {
-                                      const p = prev[exId] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                                      const nextWeights = [...p.weightLb];
-                                      nextWeights[i] = lb;
-                                      return { ...prev, [exId]: { ...p, weightLb: nextWeights } };
-                                    });
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <input
-                                type="number"
-                                step={settings.unit === "kg" ? 0.5 : 1}
-                                min={0}
-                                max={2000}
-                                className="border rounded px-2 py-1 w-28"
-                                value={weightStr}
-                                placeholder="0"
-                                onFocus={(e) => e.currentTarget.select()}
-                                onChange={(e) => {
-                                  const raw = e.target.value;
-                                  setSetPlans((prev) => {
-                                    const p = prev[exId] ?? { targetReps: Array.from({ length: totalSetsThisExercise }, () => currentExercise.targetReps), weightLb: Array.from({ length: totalSetsThisExercise }, () => currentExercise.weightLb ?? 0) };
-                                    const nextWeights = [...p.weightLb];
-                                    if (raw === "") {
-                                      nextWeights[i] = 0;
-                                    } else {
-                                      const v = Number(raw);
-                                      if (!Number.isNaN(v)) {
-                                        nextWeights[i] = settings.unit === "kg" ? kgToLb(v) : v;
-                                      }
-                                    }
-                                    return { ...prev, [exId]: { ...p, weightLb: nextWeights } };
-                                  });
-                                }}
-                              />
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    });
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {phase === "rest" && null}
-
-      {phase === "done" && (
-        <div className="mt-8 grid gap-4">
-          <div className="text-2xl font-semibold">Workout complete!</div>
-          <section className="grid gap-2">
-            {plan.map((cfg) => {
-              const name = exercises.find((e) => e.id === cfg.exerciseId)?.name;
-              const sets = results[cfg.exerciseId] ?? [];
-              return (
-                <div key={cfg.exerciseId} className="border rounded p-3">
-                  <div className="font-semibold mb-2">{name}</div>
-                  <ul className="text-sm grid gap-1">
-                    {sets.map((s, i) => (
-                      <li key={i}>
-                        Set {i + 1}: {s.reps} reps @ {settings.unit === "kg" ? lbToKg(s.weightLb) : s.weightLb} {settings.unit}
-                      </li>)
-                    )}
-                  </ul>
-                </div>
-              );
-            })}
-          </section>
-          <button
-            className={`rounded px-5 py-2.5 font-semibold transition
-              border-2 focus:outline-none focus:ring-4 shadow-sm
-              ${settings.theme === 'white'
-                ? 'bg-black text-white border-black hover:bg-neutral-900 focus:ring-black/20'
-                : 'bg-foreground text-background border-foreground hover:opacity-90 focus:ring-foreground/20'}
-              w-fit inline-flex items-center justify-center`}
-            onClick={() => setPhase("setup")}
-          >
-            New Workout
-          </button>
         </div>
       )}
     </div>

@@ -9,6 +9,39 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-02
+### Added
+- IronLog branding — renamed from "Simple Workout App" throughout
+- Mobile viewport meta (`maximum-scale=1`) to fix scaling on iOS/Android
+- CSS design-token variables (`--background`, `--foreground`, `--card`, `--muted`, `--accent`) in `globals.css`
+- Global number-input spinner removal (webkit + moz) for cleaner mobile UX
+- Exercise type badges on selection cards (bodyweight = emerald, weights = blue)
+- Checkmark overlay on selected exercise cards
+- Per-exercise progress breadcrumb during workout (shows all exercises, highlights current, marks completed)
+- Volume total per exercise on the workout-complete screen
+- Elapsed duration shown on the completion screen
+- Empty-state cards with CTA on History and PRs pages
+
+### Changed
+- Full UI redesign across all pages — glassmorphism cards on dark themes, clean surfaces on White/System
+- Theme-aware helper class pattern (`cardCls`, `mutedCls`, `fgCls`, `sectionHeadCls`, etc.) shared across all pages
+- Dark themes (Ocean, Sunset, Forest) now use deep gradient backgrounds instead of light pastels
+- Sticky frosted-glass header replaces plain top section; nav as pill buttons; theme selector inline in header
+- Exercise selection grid: 2-col (3-col on sm+), rounded-2xl cards with hover states
+- Configure section: 2×2 / 4-col input grid per exercise, section-header labels
+- Begin Workout moved to a fixed bottom bar showing exercise count
+- Unit toggle redesigned as a pill segmented control
+- Rest timer: color-coded states — indigo while counting, amber when time's up
+- Reps / Weight inputs enlarged (4xl font, no spinners) in card containers for mobile tapping
+- "Submit Set" renamed to "Log Set"
+- Sets table: rounded card container, icon row markers (▶ current, ✓ done), colored row backgrounds
+- History page: session cards with set count + volume stat badges; compact set pills
+- PRs page: "best lift" highlight badge per exercise; rep-range grid with filled vs empty state differentiation
+- README rewritten to reflect IronLog branding, new design system, updated flow, and roadmap
+
+### Fixed
+- `layout.tsx` metadata title updated from Next.js default to "IronLog — Workout Tracker"
+
 ## [0.1.1] - 2025-09-25
 ### Added
 - Per-exercise rest times: each exercise can now override the default rest.

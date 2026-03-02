@@ -1,30 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f6fb;
+  --foreground: #0f0f17;
+  --card: #ffffff;
+  --card-border: rgba(0,0,0,0.08);
+  --muted: rgba(0,0,0,0.45);
+  --accent: #6366f1;
 }
-
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --foreground: #ffffff;
+    --background: #0d0d14;
+    --foreground: #f0f0fa;
+    --card: rgba(255,255,255,0.06);
+    --card-border: rgba(255,255,255,0.1);
+    --muted: rgba(255,255,255,0.45);
+    --accent: #818cf8;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
 }
 
-/* Ensure native select dropdown is readable */
+/* Remove number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Custom select appearance */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Smooth focus ring */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Glass card helper */
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Themed select for light bg contexts */
 .theme-select {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: transparent;
+  color: inherit;
 }
 .theme-select option {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #1e1e2e;
+  color: #f0f0fa;
+}
+
+/* Pill nav button */
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-pill:hover {
+  background: rgba(255,255,255,0.16);
+}
+
+/* Light-mode nav pill override */
+.light-nav .nav-pill {
+  border-color: rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.05);
+}
+.light-nav .nav-pill:hover {
+  background: rgba(0,0,0,0.1);
 }
