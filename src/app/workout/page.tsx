@@ -234,16 +234,23 @@ function WorkoutPageInner() {
   });
 
   const [editingName, setEditingName] = useState(false);
+  const [started, setStarted] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showFinish, setShowFinish] = useState(false);
-  const startedAt = useRef(Date.now());
+  const startedAt = useRef(0);
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (!started) return;
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [started]);
+
+  function handleStart() {
+    startedAt.current = Date.now();
+    setStarted(true);
+  }
 
   useEffect(() => {
     if (editingName) nameRef.current?.focus();
@@ -284,7 +291,7 @@ function WorkoutPageInner() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white pb-24">
+    <main className={`min-h-screen bg-zinc-950 text-white ${started ? "pb-24" : "pb-36"}`}>
       {/* Sticky header */}
       <header className="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur border-b border-zinc-800">
         <div className="mx-auto max-w-md flex items-center gap-3 px-4 py-3">
@@ -310,20 +317,38 @@ function WorkoutPageInner() {
               </button>
             )}
           </div>
-          <div className="flex items-center gap-1 text-xs text-zinc-400 shrink-0">
+          <div className={`flex items-center gap-1 text-xs shrink-0 ${started ? "text-orange-400" : "text-zinc-600"}`}>
             <Timer size={13} />
-            {fmtTime(seconds)}
+            {started ? fmtTime(seconds) : "--:--"}
           </div>
-          <button
-            onClick={() => setShowFinish(true)}
-            className="shrink-0 rounded-xl bg-orange-500 px-3 py-1.5 text-xs font-bold text-white active:opacity-80"
-          >
-            Finish
-          </button>
+          {started ? (
+            <button
+              onClick={() => setShowFinish(true)}
+              className="shrink-0 rounded-xl bg-orange-500 px-3 py-1.5 text-xs font-bold text-white active:opacity-80"
+            >
+              Finish
+            </button>
+          ) : (
+            <button
+              onClick={handleStart}
+              className="shrink-0 rounded-xl bg-zinc-800 border border-orange-500 px-3 py-1.5 text-xs font-bold text-orange-500 active:opacity-80"
+            >
+              Begin
+            </button>
+          )}
         </div>
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4 space-y-3">
+        {!started && (
+          <div className="rounded-2xl bg-zinc-900 border border-orange-500/30 px-4 py-3 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-orange-500/60 shrink-0" />
+            <p className="text-xs text-zinc-400">
+              Add your exercises and fill in weights &amp; reps, then tap <span className="text-orange-400 font-semibold">Begin</span> to start the timer.
+            </p>
+          </div>
+        )}
+
         {exercises.length === 0 && (
           <div className="rounded-2xl border border-dashed border-zinc-800 py-14 text-center text-zinc-600">
             <p className="text-sm">No exercises added yet.</p>
@@ -347,6 +372,19 @@ function WorkoutPageInner() {
           <Plus size={16} /> Add Exercise
         </button>
       </div>
+
+      {!started && exercises.length > 0 && (
+        <div className="fixed bottom-0 inset-x-0 px-4 pb-6 pt-3 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent">
+          <div className="mx-auto max-w-md">
+            <button
+              onClick={handleStart}
+              className="w-full rounded-2xl bg-orange-500 py-4 font-bold text-white text-base active:opacity-80 transition-opacity flex items-center justify-center gap-2"
+            >
+              <Timer size={18} /> Begin Workout
+            </button>
+          </div>
+        </div>
+      )}
 
       <ExerciseSheet
         open={sheetOpen}
