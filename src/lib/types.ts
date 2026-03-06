@@ -1,62 +1,51 @@
+export type Unit = "lb" | "kg";
+
+export type Settings = {
+  unit: Unit;
+  username: string;
+};
+
+// Rich exercise with category and equipment
 export type Exercise = {
   id: string;
   name: string;
-  type: "weights" | "bodyweight";
+  category: string;
+  equipment: string;
 };
 
-export type ExerciseConfig = {
-  exerciseId: string;
-  sets: number;
-  targetReps: number;
-  // Optional default weight (stored in pounds) set during setup for this workout
-  weightLb?: number;
-  // Optional per-exercise rest in seconds (overrides global default)
-  restSeconds?: number;
+// Active workout types
+export type WorkoutSet = {
+  id: string;
+  weight: string; // free-form string input
+  reps: string;
+  completed: boolean;
 };
 
-export type WorkoutConfig = {
-  selected: ExerciseConfig[];
-  restSeconds: number;
+export type ActiveExercise = {
+  instanceId: string;
+  exercise: Exercise;
+  sets: WorkoutSet[];
 };
 
-export type SetResult = {
-  reps: number;
-  weightLb: number; // store in pounds
-  completedAt: number; // epoch ms
+export type CompletedWorkout = {
+  id: string;
+  name: string;
+  date: number; // epoch ms
+  exercises: ActiveExercise[];
+  duration: number; // seconds
 };
 
-export type WorkoutResults = Record<string, SetResult[]>; // key = exerciseId
-
+// PR tracking — best weight per rep count (1-15 reps)
 export type RepPR = {
-  reps: number; // 1..15
-  weightLb: number; // max weight achieved for this reps
+  reps: number;
+  weightLb: number;
   date: number; // epoch ms
 };
 
 export type ExercisePRs = {
   exerciseId: string;
+  exerciseName: string;
   byReps: Record<number, RepPR>; // reps -> PR
 };
 
-export type AllPRs = Record<string, ExercisePRs>; // exerciseId -> prs
-
-export type Unit = "lb" | "kg";
-
-export type Settings = {
-  unit: Unit; // global unit preference
-  theme?: "ocean" | "sunset" | "forest" | "none" | "white";
-};
-
-export type WorkoutExercisePlan = {
-  exerciseId: string;
-  name: string; // capture name at time of workout in case list changes
-  sets: { reps: number; weightLb: number; completedAt: number }[];
-};
-
-export type WorkoutSession = {
-  id: string; // uuid
-  date: number; // epoch ms
-  restSeconds: number;
-  unitAtTime: Unit;
-  exercises: WorkoutExercisePlan[];
-};
+export type AllPRs = Record<string, ExercisePRs>;

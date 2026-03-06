@@ -1,154 +1,102 @@
 "use client";
 
-import Link from "next/link";
-import { loadHistory, loadSettings, lbToKg } from "@/lib/storage";
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronDown, Dumbbell, Clock, BarChart2, History } from "lucide-react";
+import { loadHistory, loadSettings } from "@/lib/storage";
+import type { CompletedWorkout } from "@/lib/types";
+import { CATEGORY_COLORS } from "@/lib/exercises";
 
-export default function HistoryPage() {
-  const [history] = useState(loadHistory());
-  const [settings] = useState(loadSettings());
-  const sessions = useMemo(() => history, [history]);
+function formatDuration(sec: number) {
+  const m = Math.floor(sec / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}h ${m % 60}m`;
+  return `${m}m`;
+}
 
-  const theme = settings.theme ?? "ocean";
-  const isWhite = theme === "white";
-  const isNone = theme === "none";
-  const isDarkTheme = !isWhite && !isNone;
+function calcVolume(workout: CompletedWorkout) {
+  return workout.exercises.reduce((total, ex) => {
+    return total + ex.sets.reduce((st, s) => st + (parseFloat(s.weight) || 0) * (parseFloat(s.reps) || 0), 0);
+  }, 0);
+}
 
-  const rootBg =
-    theme === "sunset"
-      ? "bg-gradient-to-br from-rose-950 via-orange-950 to-amber-950"
-      : theme === "forest"
-      ? "bg-gradient-to-br from-emerald-950 via-green-950 to-teal-950"
-      : theme === "white"
-      ? "bg-white text-gray-900"
-      : theme === "none"
-      ? ""
-      : "bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900";
-
-  const cardCls = isWhite
-    ? "bg-white border border-gray-200 shadow-sm"
-    : isNone
-    ? "bg-foreground/[0.04] border border-foreground/10"
-    : "bg-white/[0.07] border border-white/10 backdrop-blur-sm";
-
-  const mutedCls = isWhite ? "text-gray-500" : isNone ? "text-foreground/50" : "text-white/50";
-  const fgCls = isWhite ? "text-gray-900" : isNone ? "text-foreground" : "text-white";
-  const sectionHeadCls = isWhite
-    ? "text-gray-400 uppercase text-[10px] font-bold tracking-widest"
-    : isNone
-    ? "text-foreground/40 uppercase text-[10px] font-bold tracking-widest"
-    : "text-white/40 uppercase text-[10px] font-bold tracking-widest";
-
-  const headerCls = isWhite
-    ? "border-b border-gray-200 bg-white/90 backdrop-blur-md"
-    : isNone
-    ? "border-b border-foreground/10 bg-background/80 backdrop-blur-md"
-    : "border-b border-white/10 bg-black/20 backdrop-blur-md";
-
-  const navPillCls = isWhite
-    ? "text-sm px-3 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
-    : isNone
-    ? "text-sm px-3 py-1 rounded-full border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
-    : "text-sm px-3 py-1 rounded-full border border-white/15 bg-white/8 hover:bg-white/15 text-white transition";
-
-  const innerCardCls = isWhite
-    ? "bg-gray-50 border border-gray-100 rounded-xl"
-    : isNone
-    ? "bg-foreground/[0.02] border border-foreground/8 rounded-xl"
-    : "bg-white/[0.04] border border-white/5 rounded-xl";
+function WorkoutCard({ workout, unit }: { workout: CompletedWorkout; unit: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const volume = calcVolume(workout);
+  const totalSets = workout.exercises.reduce((t, ex) => t + ex.sets.length, 0);
 
   return (
-    <div className={`min-h-screen ${rootBg} ${isDarkTheme ? "text-white" : ""}`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-40 ${headerCls}`}>
-        <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <h1 className={`font-black text-lg tracking-tight ${fgCls}`}>History</h1>
-          <Link href="/" className={navPillCls}>
-            ← Back
-          </Link>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-4 py-4 flex items-center gap-3 text-left"
+      >
+        <div className="w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+          <Dumbbell size={18} className="text-zinc-400" />
         </div>
-      </header>
-
-      <main className="max-w-xl mx-auto px-4 py-6 pb-16">
-        {sessions.length === 0 ? (
-          <div className={`rounded-2xl p-8 text-center ${cardCls}`}>
-            <div className={`text-4xl mb-3 ${mutedCls}`}>—</div>
-            <p className={`font-semibold mb-1 ${fgCls}`}>No sessions yet</p>
-            <p className={`text-sm ${mutedCls}`}>Complete a workout to see it here.</p>
-            <Link href="/" className={`inline-block mt-4 text-sm px-4 py-2 rounded-full transition ${
-              isWhite ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-indigo-600 text-white hover:bg-indigo-500"
-            }`}>
-              Start a workout
-            </Link>
+        <div className="flex-1 min-w-0">
+          <p className="text-white" style={{ fontWeight: 700, fontSize: "0.95rem" }}>{workout.name}</p>
+          <p className="text-zinc-500" style={{ fontSize: "0.75rem" }}>
+            {new Date(workout.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="text-right">
+            <p className="text-zinc-300" style={{ fontWeight: 600, fontSize: "0.85rem" }}>{formatDuration(workout.duration)}</p>
+            <p className="text-zinc-600" style={{ fontSize: "0.7rem" }}>{totalSets} sets</p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <p className={`${sectionHeadCls} mb-4`}>{sessions.length} session{sessions.length !== 1 ? "s" : ""}</p>
+          <ChevronDown size={16} className={`text-zinc-600 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </div>
+      </button>
 
-            {sessions.map((s) => {
-              const date = new Date(s.date);
-              const totalSets = s.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-              const totalVol = s.exercises.reduce((sum, ex) =>
-                sum + ex.sets.reduce((sv, st) =>
-                  sv + st.reps * (s.unitAtTime === "kg" ? lbToKg(st.weightLb) : st.weightLb), 0), 0);
+      {expanded && (
+        <div className="border-t border-zinc-800">
+          <div className="px-4 py-3 flex gap-4 border-b border-zinc-800">
+            <div className="flex items-center gap-1.5">
+              <Clock size={13} className="text-zinc-500" />
+              <span className="text-zinc-400" style={{ fontSize: "0.78rem" }}>{formatDuration(workout.duration)}</span>
+            </div>
+            {volume > 0 && (
+              <div className="flex items-center gap-1.5">
+                <BarChart2 size={13} className="text-zinc-500" />
+                <span className="text-zinc-400" style={{ fontSize: "0.78rem" }}>
+                  {unit === "kg"
+                    ? `${Math.round(volume * 0.453592).toLocaleString()} kg`
+                    : `${volume.toLocaleString()} lb`} vol
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <Dumbbell size={13} className="text-zinc-500" />
+              <span className="text-zinc-400" style={{ fontSize: "0.78rem" }}>{workout.exercises.length} exercises</span>
+            </div>
+          </div>
 
+          <div className="px-4 py-3 space-y-3">
+            {workout.exercises.map((ae) => {
+              const catColor = CATEGORY_COLORS[ae.exercise.category] ?? "text-zinc-400";
+              const catTextColor = catColor.split(" ")[0];
               return (
-                <div key={s.id} className={`rounded-2xl overflow-hidden ${cardCls}`}>
-                  {/* Session header */}
-                  <div className={`px-4 pt-4 pb-3 border-b ${isWhite ? "border-gray-100" : "border-white/8"}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className={`font-bold text-sm ${fgCls}`}>
-                          {date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
-                        </div>
-                        <div className={`text-xs mt-0.5 ${mutedCls}`}>
-                          {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-                          {" · "}Rest {s.restSeconds}s{" · "}{s.unitAtTime}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className={`text-center px-2 py-1 rounded-lg ${
-                          isWhite ? "bg-indigo-50 text-indigo-600" : "bg-indigo-500/15 text-indigo-400"
-                        }`}>
-                          <div className="text-lg font-black leading-none">{totalSets}</div>
-                          <div className={`text-[9px] uppercase tracking-wider ${isWhite ? "text-indigo-400" : "text-indigo-500"}`}>sets</div>
-                        </div>
-                        {totalVol > 0 && (
-                          <div className={`text-center px-2 py-1 rounded-lg ${
-                            isWhite ? "bg-emerald-50 text-emerald-700" : "bg-emerald-500/15 text-emerald-400"
-                          }`}>
-                            <div className="text-lg font-black leading-none">{Math.round(totalVol).toLocaleString()}</div>
-                            <div className={`text-[9px] uppercase tracking-wider ${isWhite ? "text-emerald-500" : "text-emerald-600"}`}>
-                              {s.unitAtTime} vol
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                <div key={ae.instanceId}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-white" style={{ fontWeight: 600, fontSize: "0.85rem" }}>{ae.exercise.name}</p>
+                    <span className={catTextColor} style={{ fontSize: "0.72rem" }}>{ae.exercise.category}</span>
                   </div>
-
-                  {/* Exercises */}
-                  <div className="px-4 py-3 space-y-3">
-                    {s.exercises.map((ex) => (
-                      <div key={ex.exerciseId} className={`p-3 ${innerCardCls}`}>
-                        <div className={`font-semibold text-xs mb-2 ${fgCls}`}>{ex.name}</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ex.sets.map((st, i) => (
-                            <span
-                              key={i}
-                              className={`text-[11px] px-2 py-0.5 rounded-full font-mono ${
-                                isWhite
-                                  ? "bg-gray-100 text-gray-600 border border-gray-200"
-                                  : "bg-white/8 text-white/60 border border-white/8"
-                              }`}
-                            >
-                              {st.reps}r
-                              {st.weightLb > 0
-                                ? ` × ${s.unitAtTime === "kg" ? lbToKg(st.weightLb) : st.weightLb}${s.unitAtTime}`
-                                : ""}
-                            </span>
-                          ))}
+                  <div className="space-y-1">
+                    {ae.sets.map((s, idx) => (
+                      <div key={s.id} className="flex items-center gap-2">
+                        <span className="text-zinc-600 w-8" style={{ fontSize: "0.72rem" }}>Set {idx + 1}</span>
+                        <div className="flex-1 bg-zinc-800 rounded-lg px-3 py-1.5 flex items-center justify-between">
+                          <span className="text-zinc-300" style={{ fontSize: "0.8rem" }}>
+                            {s.weight ? `${s.weight} ${unit}` : "—"}
+                          </span>
+                          <span className="text-zinc-500" style={{ fontSize: "0.8rem" }}>
+                            {s.reps ? `${s.reps} reps` : "—"}
+                          </span>
                         </div>
+                        {s.completed && (
+                          <span className="text-green-500 text-xs">✓</span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -156,8 +104,64 @@ export default function HistoryPage() {
               );
             })}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function HistoryPage() {
+  const router = useRouter();
+  const [history, setHistory] = useState<CompletedWorkout[]>([]);
+  const [unit, setUnit] = useState<"lb" | "kg">("lb");
+
+  useEffect(() => {
+    setHistory(loadHistory());
+    setUnit(loadSettings().unit);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      <div className="px-5 pt-12 pb-4">
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors mb-5"
+          style={{ fontSize: "0.9rem" }}
+        >
+          <ChevronLeft size={18} />
+          Back
+        </button>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center border border-blue-500/20">
+            <History size={20} className="text-blue-400" />
+          </div>
+          <h1 className="text-white" style={{ fontWeight: 800, fontSize: "1.5rem" }}>History</h1>
+        </div>
+        <p className="text-zinc-500" style={{ fontSize: "0.85rem" }}>All your past workouts</p>
+      </div>
+
+      <div className="flex-1 px-5 pb-8 overflow-y-auto">
+        {history.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-800">
+              <History size={28} className="text-zinc-600" />
+            </div>
+            <p className="text-zinc-400" style={{ fontWeight: 600 }}>No sessions yet</p>
+            <p className="text-zinc-600 mt-1" style={{ fontSize: "0.85rem" }}>Complete a workout to see it here.</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-zinc-500 mb-3 uppercase tracking-wider" style={{ fontSize: "0.72rem", fontWeight: 600 }}>
+              {history.length} session{history.length !== 1 ? "s" : ""}
+            </p>
+            <div className="space-y-3">
+              {history.map((w) => (
+                <WorkoutCard key={w.id} workout={w} unit={unit} />
+              ))}
+            </div>
+          </>
         )}
-      </main>
+      </div>
     </div>
   );
 }

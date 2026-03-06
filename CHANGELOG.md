@@ -9,6 +9,32 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-03-06
+### Added
+- **FORGE redesign** — complete UI overhaul with zinc-950 dark background, orange-500 accent, and rounded-2xl card system
+- `src/lib/exercises.ts` — 59-exercise catalog with 7 categories (Chest, Back, Shoulders, Arms, Legs, Core, Cardio), `CATEGORY_COLORS` map, and 6 `WORKOUT_TEMPLATES` (Push Day, Pull Day, Leg Day, Upper Body, Full Body, Core Blast)
+- `/workout` page — active workout with live elapsed timer, per-exercise set cards (weight + reps inputs, completion toggle), inline exercise name editing, and finish/discard modal
+- `/workout/templates` page — template picker showing name, description, and exercise preview tags; links directly into `/workout?template=<id>`
+- `/settings` page — profile card with initials avatar, inline username editing, lb/kg unit toggle
+- Bottom navigation bar on the home page (Home, History, PRs, Settings)
+- `saveCompletedWorkout()` in storage — atomically saves workout history and auto-extracts PRs in one call
+
+### Changed
+- **Renamed brand** from IronLog → **FORGE**; layout title updated to "FORGE — Workout Tracker"
+- Complete rewrite of `src/app/page.tsx` — now a clean home dashboard with weekly-count / total-sessions / last-workout stats strip and recent session cards
+- `src/app/prs/page.tsx` rewritten — flat PR list with podium top-3 display (Crown/Medal with gold/silver/bronze borders), sort by date or name
+- `src/app/history/page.tsx` rewritten — session cards with expand/collapse and per-exercise set breakdown
+- `src/lib/types.ts` fully replaced — new domain model: `Exercise`, `WorkoutSet`, `ActiveExercise`, `CompletedWorkout`, `RepPR`, `ExercisePRs`, `AllPRs`, `Settings` (unit + username)
+- `src/lib/storage.ts` rewritten — new localStorage keys (`forge_prs_v1`, `forge_settings_v1`, `forge_workouts_v1`); `Settings` now includes `username`
+- `src/app/globals.css` updated to FORGE dark theme; removed dynamic theme switching
+- `tsconfig.json` — added `"Mobile Workout App"` to `exclude` to prevent Vite sub-project from polluting the TS build
+
+### Removed
+- Old multi-theme system (Ocean, Sunset, Forest, White, None)
+- `ExerciseConfig`, `WorkoutSession`, `SetResult`, and other legacy types
+- `src/lib/useCountdown.ts` rest timer hook (no longer used)
+- `Mobile Workout App/` Figma-generated design reference folder
+
 ## [0.2.0] - 2026-03-02
 ### Added
 - IronLog branding — renamed from "Simple Workout App" throughout
@@ -73,6 +99,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Fixed
 - Squat animation cohesion and floor overlap; made figures/readability consistent across themes.
 
-[Unreleased]: https://github.com/angelofsd/workout-app/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/angelofsd/workout-app/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/angelofsd/workout-app/compare/v0.2.0...v1.0.0
+[0.2.0]: https://github.com/angelofsd/workout-app/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/angelofsd/workout-app/compare/0.1.0...v0.1.1
 [0.1.0]: https://github.com/angelofsd/workout-app/tree/main

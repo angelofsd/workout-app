@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IronLog — Workout Tracker",
-  description: "A sharp, minimal workout tracker with rest timers, PRs, and session history.",
+  title: "FORGE — Workout Tracker",
+  description: "Build. Track. Conquer. A sleek mobile workout tracker with PRs and session history.",
 };
 
 export const viewport: Viewport = {

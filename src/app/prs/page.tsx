@@ -1,170 +1,142 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, Trophy, Medal, Crown } from "lucide-react";
 import { loadPRs, loadSettings, lbToKg } from "@/lib/storage";
-import { useMemo, useState } from "react";
+import type { AllPRs } from "@/lib/types";
+
+const MEDAL_COLORS = [
+  "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
+  "text-zinc-300 bg-zinc-300/10 border-zinc-300/20",
+  "text-amber-600 bg-amber-600/10 border-amber-600/20",
+];
+
+interface FlatPR {
+  exerciseId: string;
+  exerciseName: string;
+  reps: number;
+  weightLb: number;
+  date: number;
+}
+
+function flattenPRs(allPRs: AllPRs): FlatPR[] {
+  const result: FlatPR[] = [];
+  for (const ep of Object.values(allPRs)) {
+    for (const rp of Object.values(ep.byReps)) {
+      result.push({
+        exerciseId: ep.exerciseId,
+        exerciseName: ep.exerciseName,
+        reps: rp.reps,
+        weightLb: rp.weightLb,
+        date: rp.date,
+      });
+    }
+  }
+  return result;
+}
 
 export default function PRsPage() {
-  const [prs] = useState(loadPRs());
-  const [settings] = useState(loadSettings());
-  const entries = useMemo(() => Object.values(prs), [prs]);
+  const router = useRouter();
+  const [allPRs, setAllPRs] = useState<AllPRs>({});
+  const [unit, setUnit] = useState<"lb" | "kg">("lb");
+  const [sortBy, setSortBy] = useState<"date" | "exercise">("date");
 
-  const theme = settings.theme ?? "ocean";
-  const isWhite = theme === "white";
-  const isNone = theme === "none";
-  const isDarkTheme = !isWhite && !isNone;
+  useEffect(() => {
+    setAllPRs(loadPRs());
+    setUnit(loadSettings().unit);
+  }, []);
 
-  const rootBg =
-    theme === "sunset"
-      ? "bg-gradient-to-br from-rose-950 via-orange-950 to-amber-950"
-      : theme === "forest"
-      ? "bg-gradient-to-br from-emerald-950 via-green-950 to-teal-950"
-      : theme === "white"
-      ? "bg-white text-gray-900"
-      : theme === "none"
-      ? ""
-      : "bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900";
+  const flat = flattenPRs(allPRs);
+  const sorted = [...flat].sort((a, b) =>
+    sortBy === "date" ? b.date - a.date : a.exerciseName.localeCompare(b.exerciseName)
+  );
 
-  const cardCls = isWhite
-    ? "bg-white border border-gray-200 shadow-sm"
-    : isNone
-    ? "bg-foreground/[0.04] border border-foreground/10"
-    : "bg-white/[0.07] border border-white/10 backdrop-blur-sm";
+  const displayWeight = (lb: number) =>
+    unit === "kg" ? `${lbToKg(lb)} kg` : `${lb} lb`;
 
-  const mutedCls = isWhite ? "text-gray-500" : isNone ? "text-foreground/50" : "text-white/50";
-  const fgCls = isWhite ? "text-gray-900" : isNone ? "text-foreground" : "text-white";
-  const sectionHeadCls = isWhite
-    ? "text-gray-400 uppercase text-[10px] font-bold tracking-widest"
-    : isNone
-    ? "text-foreground/40 uppercase text-[10px] font-bold tracking-widest"
-    : "text-white/40 uppercase text-[10px] font-bold tracking-widest";
-
-  const headerCls = isWhite
-    ? "border-b border-gray-200 bg-white/90 backdrop-blur-md"
-    : isNone
-    ? "border-b border-foreground/10 bg-background/80 backdrop-blur-md"
-    : "border-b border-white/10 bg-black/20 backdrop-blur-md";
-
-  const navPillCls = isWhite
-    ? "text-sm px-3 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
-    : isNone
-    ? "text-sm px-3 py-1 rounded-full border border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition"
-    : "text-sm px-3 py-1 rounded-full border border-white/15 bg-white/8 hover:bg-white/15 text-white transition";
+  const top3 = sorted.slice(0, 3);
 
   return (
-    <div className={`min-h-screen ${rootBg} ${isDarkTheme ? "text-white" : ""}`}>
-      {/* Header */}
-      <header className={`sticky top-0 z-40 ${headerCls}`}>
-        <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <h1 className={`font-black text-lg tracking-tight ${fgCls}`}>Personal Records</h1>
-          <Link href="/" className={navPillCls}>
-            ← Back
-          </Link>
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      <div className="px-5 pt-12 pb-4">
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors mb-5"
+          style={{ fontSize: "0.9rem" }}
+        >
+          <ChevronLeft size={18} />
+          Back
+        </button>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-yellow-500/15 flex items-center justify-center border border-yellow-500/20">
+            <Trophy size={20} className="text-yellow-400" />
+          </div>
+          <h1 className="text-white" style={{ fontWeight: 800, fontSize: "1.5rem" }}>Personal Records</h1>
         </div>
-      </header>
+        <p className="text-zinc-500" style={{ fontSize: "0.85rem" }}>Your best lifts ever</p>
+      </div>
 
-      <main className="max-w-xl mx-auto px-4 py-6 pb-16">
-        {entries.length === 0 ? (
-          <div className={`rounded-2xl p-8 text-center ${cardCls}`}>
-            <div className={`text-4xl mb-3 ${mutedCls}`}>—</div>
-            <p className={`font-semibold mb-1 ${fgCls}`}>No PRs yet</p>
-            <p className={`text-sm ${mutedCls}`}>Log a workout to start tracking personal records.</p>
-            <Link href="/" className={`inline-block mt-4 text-sm px-4 py-2 rounded-full transition ${
-              isWhite ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-indigo-600 text-white hover:bg-indigo-500"
-            }`}>
-              Start a workout
-            </Link>
+      <div className="flex-1 px-5 pb-8 overflow-y-auto">
+        {sorted.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-800">
+              <Trophy size={28} className="text-zinc-600" />
+            </div>
+            <p className="text-zinc-400" style={{ fontWeight: 600 }}>No PRs yet</p>
+            <p className="text-zinc-600 mt-1" style={{ fontSize: "0.85rem" }}>Log a workout to start tracking records.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <p className={`${sectionHeadCls} mb-4`}>{entries.length} exercise{entries.length !== 1 ? "s" : ""} tracked</p>
-
-            {entries.map((e) => {
-              // Find the overall best (1RM equivalent highlight)
-              const bestEntry = Object.values(e.byReps).reduce<{ reps: number; weightLb: number; date: number } | null>(
-                (best, pr) => {
-                  if (!best || pr.weightLb > best.weightLb) return pr;
-                  return best;
-                },
-                null
-              );
-
-              const rows = Array.from({ length: 15 }, (_, i) => i + 1).map((r) => {
-                const p = e.byReps[r];
-                if (!p) return { reps: r, value: null, date: null };
-                const v = settings.unit === "kg" ? lbToKg(p.weightLb) : p.weightLb;
-                return { reps: r, value: `${v} ${settings.unit}`, date: p.date };
-              });
-
-              const filledRows = rows.filter((r) => r.value !== null);
-
-              return (
-                <div key={e.exerciseId} className={`rounded-2xl overflow-hidden ${cardCls}`}>
-                  {/* Exercise header */}
-                  <div className={`px-4 pt-4 pb-3 border-b ${isWhite ? "border-gray-100" : "border-white/8"}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className={`font-bold ${fgCls}`}>{e.exerciseId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</div>
-                        <div className={`text-xs mt-0.5 ${mutedCls}`}>{filledRows.length} rep range{filledRows.length !== 1 ? "s" : ""} logged</div>
-                      </div>
-                      {bestEntry && (
-                        <div className={`shrink-0 text-right px-3 py-2 rounded-xl ${
-                          isWhite ? "bg-amber-50 border border-amber-200" : "bg-amber-500/15 border border-amber-500/25"
-                        }`}>
-                          <div className={`text-lg font-black leading-none ${isWhite ? "text-amber-600" : "text-amber-400"}`}>
-                            {settings.unit === "kg" ? lbToKg(bestEntry.weightLb) : bestEntry.weightLb}
-                            <span className={`text-xs font-medium ml-0.5 ${isWhite ? "text-amber-500" : "text-amber-500"}`}>{settings.unit}</span>
-                          </div>
-                          <div className={`text-[9px] uppercase tracking-wider mt-0.5 ${isWhite ? "text-amber-500" : "text-amber-600"}`}>
-                            best @ {bestEntry.reps}r
-                          </div>
-                        </div>
-                      )}
+          <>
+            {top3.length > 0 && (
+              <div className="mb-6">
+                <p className="text-zinc-500 mb-3 uppercase tracking-wider" style={{ fontSize: "0.72rem", fontWeight: 600 }}>Top Lifts</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {top3.map((pr, idx) => (
+                    <div key={`${pr.exerciseId}-${pr.reps}`}
+                      className={`bg-zinc-900 rounded-2xl p-3.5 border flex flex-col items-center text-center ${MEDAL_COLORS[idx]}`}
+                    >
+                      {idx === 0 ? <Crown size={18} className="text-yellow-400 mb-2" />
+                        : <Medal size={18} className={idx === 1 ? "text-zinc-300 mb-2" : "text-amber-600 mb-2"} />}
+                      <p className="text-white truncate w-full" style={{ fontWeight: 700, fontSize: "0.78rem" }}>{pr.exerciseName}</p>
+                      <p className="text-white mt-1" style={{ fontWeight: 800, fontSize: "1.05rem" }}>{displayWeight(pr.weightLb)}</p>
+                      <p className="text-zinc-500" style={{ fontSize: "0.68rem" }}>x {pr.reps} rep{pr.reps !== 1 ? "s" : ""}</p>
                     </div>
-                  </div>
-
-                  {/* Rep range grid */}
-                  <div className="px-4 py-3">
-                    <p className={`${sectionHeadCls} mb-2.5`}>By rep range</p>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
-                      {rows.map((r) => (
-                        <div
-                          key={r.reps}
-                          className={`rounded-xl px-2 py-2 text-center transition-all ${
-                            r.value
-                              ? isWhite
-                                ? "bg-indigo-50 border border-indigo-200"
-                                : "bg-indigo-500/15 border border-indigo-500/20"
-                              : isWhite
-                              ? "bg-gray-50 border border-gray-100 opacity-40"
-                              : "bg-white/[0.03] border border-white/5 opacity-30"
-                          }`}
-                        >
-                          <div className={`text-[10px] font-semibold mb-0.5 ${
-                            r.value
-                              ? isWhite ? "text-indigo-500" : "text-indigo-400"
-                              : mutedCls
-                          }`}>
-                            {r.reps}r
-                          </div>
-                          <div className={`text-xs font-bold leading-tight ${r.value ? fgCls : mutedCls}`}>
-                            {r.value
-                              ? r.value.replace(` ${settings.unit}`, "")
-                              : "–"}
-                          </div>
-                          {r.value && (
-                            <div className={`text-[9px] ${mutedCls}`}>{settings.unit}</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mb-4">
+              <p className="text-zinc-500 uppercase tracking-wider flex-1" style={{ fontSize: "0.72rem", fontWeight: 600 }}>All Records</p>
+              <div className="flex bg-zinc-900 rounded-lg p-0.5 border border-zinc-800">
+                {(["date", "exercise"] as const).map((opt) => (
+                  <button key={opt} onClick={() => setSortBy(opt)}
+                    className={`px-3 py-1 rounded-md transition-all capitalize ${sortBy === opt ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+                    style={{ fontSize: "0.75rem", fontWeight: 600 }}
+                  >{opt}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {sorted.map((pr) => (
+                <div key={`${pr.exerciseId}-${pr.reps}`}
+                  className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="text-white truncate" style={{ fontWeight: 600, fontSize: "0.9rem" }}>{pr.exerciseName}</p>
+                    <p className="text-zinc-500" style={{ fontSize: "0.72rem" }}>
+                      {pr.reps} rep{pr.reps !== 1 ? "s" : ""} - {new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                  </div>
+                  <p className="text-orange-400 flex-shrink-0 ml-3" style={{ fontWeight: 700, fontSize: "1rem" }}>{displayWeight(pr.weightLb)}</p>
+                </div>
+              ))}
+            </div>
+          </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
